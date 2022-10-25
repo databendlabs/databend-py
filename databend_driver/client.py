@@ -93,7 +93,7 @@ class Client(object):
                                   returned alongside with result.
                                   Defaults to ``False``.
         :param query_id: the query identifier. If no query id specified
-                         ClickHouse server will generate it.
+                         Databend server will generate it.
         :param settings: dictionary of query settings.
                          Defaults to ``None`` (no additional settings).
 
