@@ -1,0 +1,9 @@
+DEFAULT_DATABASE = 'default'
+DEFAULT_USER = 'root'
+DEFAULT_PASSWORD = ''
+DEFAULT_SESSION_IDLE_TIME = 30
+
+DBMS_NAME = 'Databend'
+CLIENT_NAME = 'python-driver'
+
+STRINGS_ENCODING = 'utf-8'
