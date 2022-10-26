@@ -32,9 +32,11 @@ class ClientFromUrlTestCase(TestCase):
     def test_iter_query(self):
         c = Client.from_url('http://localhost:8081')
 
-        result = c.execute_iter("show tables", with_column_types=False)
+        result = c.execute_iter("select 1", with_column_types=False)
 
         self.assertIsInstance(result, types.GeneratorType)
-        print([i for i in result])
+        result_list = [i for i in result]
+        print(result_list)
+        self.assertEqual(result_list, ['1'])
 
         self.assertEqual(list(result), [])
