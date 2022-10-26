@@ -12,63 +12,6 @@ from . import defines
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
 
-def format_result(results):
-    res = ""
-    if results is None:
-        return ""
-
-    for line in results:
-        buf = ""
-        for item in line:
-            if isinstance(item, bool):
-                item = str.lower(str(item))
-            if buf == "":
-                buf = str(item)
-            else:
-                buf = buf + " " + str(item)  # every item seperate by space
-        if len(buf) == 0:
-            # empty line in results will replace with tab
-            buf = "\t"
-        res = res + buf + "\n"
-    return res
-
-
-def get_data_type(field):
-    if 'data_type' in field:
-        if 'inner' in field['data_type']:
-            return field['data_type']['inner']['type']
-        else:
-            return field['data_type']['type']
-
-
-def get_query_options(response):
-    ret = ""
-    if get_error(response) is not None:
-        return ret
-    for field in response['schema']['fields']:
-        typ = str.lower(get_data_type(field))
-        log.debug(f"type:{typ}")
-        if "int" in typ:
-            ret = ret + "I"
-        elif "float" in typ or "double" in typ:
-            ret = ret + "F"
-        elif "bool" in typ:
-            ret = ret + "B"
-        else:
-            ret = ret + "T"
-    return ret
-
-
-def get_next_uri(response):
-    if "next_uri" in response:
-        return response['next_uri']
-    return None
-
-
-def get_result(response):
-    return response['data']
-
-
 def get_error(response):
     if response['error'] is None:
         return None
@@ -184,26 +127,3 @@ class Connection(object):
         error = get_error(resp)
         if error:
             raise error
-
-    def fetch_all(self, statement):
-        resp_list = self.query_with_session(statement)
-        if len(resp_list) == 0:
-            log.logger.warning("fetch all with empty results")
-            return None
-        self._query_option = get_query_options(resp_list[0])  # record schema
-        data_list = list()
-        for response in resp_list:
-            data = get_result(response)
-            if len(data) != 0:
-                data_list.extend(data)
-        return data_list
-
-    def get_query_option(self):
-        return self._query_option
-
-#
-# if __name__ == '__main__':
-#     from config import http_config
-#     connector = HttpConnector()
-#     connector.connect(**http_config)
-#     connector.query_without_session("show databases;")

@@ -1,7 +1,6 @@
 from urllib.parse import urlparse, parse_qs, unquote
-from time import time
 from databend_driver.connection import Connection
-from databend_driver.util.helper import asbool
+from databend_driver.util.helper import asbool, Helper
 from databend_driver.result import QueryResult
 import json
 
@@ -16,6 +15,7 @@ class Client(object):
         self.settings = (kwargs.pop('settings', None) or {}).copy()
         self.connection = Connection(*args, **kwargs)
         self.query_result_cls = QueryResult
+        self.helper = Helper
 
     def __enter__(self):
         return self
@@ -42,20 +42,24 @@ class Client(object):
     def receive_data(self, next_uri: str):
         resp = self.connection.next_page(next_uri)
         raw_data = json.loads(json.loads(resp.content))
-        self.connection.check_error(raw_data)
+        helper = self.helper()
+        helper.response = raw_data
+        helper.check_error()
         return raw_data
 
     def receive_result(self, query, query_id=None, with_column_types=False):
         raw_data = self.connection.query(query, None)
-        self.connection.check_error(raw_data)
+        helper = self.helper()
+        helper.response = raw_data
+        helper.check_error()
         columns_types = []
-        fields = raw_data["schema"]["fields"]
+        fields = helper.get_fields()
         for field in fields:
             columns_types.append(field["data_type"]["type"])
-        if raw_data['next_uri'] is None and with_column_types:
-            return raw_data['data'], columns_types
-        elif raw_data['next_uri'] is None:
-            return raw_data['data']
+        if helper.get_next_uri() is None and with_column_types:
+            return helper.get_result_data(), columns_types
+        elif helper.get_next_uri() is None:
+            return helper.get_result_data()
 
         gen = self.data_generator(raw_data)
         result = self.query_result_cls(
@@ -64,8 +68,10 @@ class Client(object):
 
     def iter_receive_result(self, query, with_column_types=False):
         raw_data = self.connection.query(query, None)
-        self.connection.check_error(raw_data)
-        if raw_data['next_uri'] is None:
+        helper = self.helper()
+        helper.response = raw_data
+        helper.check_error()
+        if helper.get_next_uri() is None:
             return raw_data
         gen = self.data_generator(raw_data)
         result = self.query_result_cls(

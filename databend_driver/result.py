@@ -15,9 +15,9 @@ class QueryResult(object):
 
         super(QueryResult, self).__init__()
 
-    def store(self, rawData: dict):
-        self.data = rawData.get("data")
-        fields = rawData.get("schema")["fields"]
+    def store(self, raw_data: dict):
+        self.data = raw_data.get("data")
+        fields = raw_data.get("schema")["fields"]
         for field in fields:
             self.columns_with_types.append(field["data_type"]["type"])
             self.columns.append(field["name"])

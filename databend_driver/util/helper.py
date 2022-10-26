@@ -1,15 +1,46 @@
 from itertools import islice, tee
+from databend_driver.errors import ServerException
+
+
+class Helper(object):
+    def __int__(self, response):
+        self.response = response
+        super(Helper, self).__init__()
+
+    def get_result_data(self):
+        return self.response['data']
+
+    def get_fields(self):
+        return self.response["schema"]["fields"]
+
+    def get_next_uri(self):
+        if "next_uri" in self.response:
+            return self.response['next_uri']
+        return None
+
+    def get_error(self):
+        if self.response['error'] is None:
+            return None
+
+        # Wrap errno into msg, for result check
+        return ServerException(message=self.response['error']['message'],
+                               code=self.response['error']['code'])
+
+    def check_error(self):
+        error = self.get_error()
+        if error:
+            raise error
 
 
 def chunks(seq, n):
     # islice is MUCH slower than slice for lists and tuples.
     if isinstance(seq, (list, tuple)):
         i = 0
-        item = seq[i:i+n]
+        item = seq[i:i + n]
         while item:
             yield list(item)
             i += n
-            item = seq[i:i+n]
+            item = seq[i:i + n]
 
     else:
         it = iter(seq)
