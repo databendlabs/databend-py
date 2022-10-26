@@ -73,12 +73,6 @@ class Client(object):
                 query_id=None, settings=None):
         """
         Executes query.
-
-        Establishes new connection if it wasn't established yet.
-        After query execution connection remains intact for next queries.
-        If connection can't be reused it will be closed and new connection will
-        be created.
-
         :param query: query that will be send to server.
         :param params: substitution parameters for SELECT queries and data for
                        INSERT queries. Data for INSERT can be `list`, `tuple`

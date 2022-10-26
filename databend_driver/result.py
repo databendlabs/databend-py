@@ -1,6 +1,6 @@
 class QueryResult(object):
     """
-    Stores query result from multiple blocks.
+    Stores query result from multiple response data.
     """
 
     def __init__(
@@ -25,9 +25,8 @@ class QueryResult(object):
         """
         :return: stored query result.
         """
-        self.store(self.first_data)
         data = []
-
+        self.store(self.first_data)
         for d in self.data_generator:
             self.store(d)
 
