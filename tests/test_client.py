@@ -21,5 +21,10 @@ class ClientFromUrlTestCase(TestCase):
 
     def test_ordinary_query(self):
         c = Client.from_url('http://localhost:8081')
+        r, types = c.execute("select 1", with_column_types=True)
+        self.assertEqual(r, [['1']])
+        self.assertEqual(types, ['UInt8'])
+
+        # test with_column_types=False
         r = c.execute("select 1", with_column_types=False)
         self.assertEqual(r, [['1']])
