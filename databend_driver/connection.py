@@ -101,6 +101,9 @@ class Connection(object):
         self.session = {}
         self.additional_headers = dict()
         self.query_option = None
+        self.schema = 'http'
+        if self.secure:
+            self.schema = 'https'
         e = environs.Env()
         if os.getenv("ADDITIONAL_HEADERS") is not None:
             self.additional_headers = e.dict("ADDITIONAL_HEADERS")
@@ -141,13 +144,13 @@ class Connection(object):
             raise
 
     def format_url(self):
-        return f"http://{self.host}:{self.port}/v1/query/"
+        return f"{self.schema}://{self.host}:{self.port}/v1/query/"
 
     def reset_session(self):
         self._session = {}
 
     def next_page(self, next_uri):
-        url = "http://{}:{}{}".format(self.host, self.port, next_uri)
+        url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
         return requests.get(url=url, headers=self.make_headers())
 
     # return a list of response util empty next_uri
