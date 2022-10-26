@@ -52,30 +52,19 @@ class Client(object):
         helper = self.helper()
         helper.response = raw_data
         helper.check_error()
-        columns_types = []
-        fields = helper.get_fields()
-        for field in fields:
-            columns_types.append(field["data_type"]["type"])
-        if helper.get_next_uri() is None and with_column_types:
-            return helper.get_result_data(), columns_types
-        elif helper.get_next_uri() is None:
-            return helper.get_result_data()
-
         gen = self.data_generator(raw_data)
         result = self.query_result_cls(
-            gen, with_column_types=with_column_types)
+            gen, raw_data, with_column_types=with_column_types)
         return result.get_result()
 
-    def iter_receive_result(self, query, with_column_types=False):
+    def iter_receive_result(self, query, query_id=None, with_column_types=False):
         raw_data = self.connection.query(query, None)
         helper = self.helper()
         helper.response = raw_data
         helper.check_error()
-        if helper.get_next_uri() is None:
-            return raw_data
         gen = self.data_generator(raw_data)
         result = self.query_result_cls(
-            gen, with_column_types=with_column_types)
+            gen, raw_data, with_column_types=with_column_types)
         for rows in result.get_result():
             for row in rows:
                 yield row
@@ -123,6 +112,13 @@ class Client(object):
     def process_ordinary_query(self, query, params=None, with_column_types=False,
                                query_id=None):
         return self.receive_result(query, query_id=query_id, with_column_types=with_column_types, )
+
+    def execute_iter(self, query, params=None, with_column_types=False,
+                     query_id=None, settings=None):
+        return self.iter_receive_result(query, query_id=query_id, with_column_types=with_column_types)
+
+    def iter_process_ordinary_query(self, query, with_column_types=False, query_id=None):
+        return self.iter_receive_result(query, query_id=query_id, with_column_types=with_column_types)
 
     @classmethod
     def from_url(cls, url):
