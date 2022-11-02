@@ -2,6 +2,29 @@ databend-py
 
 Databend CLoud Python Driver with native interface support
 
+Usage
+=====
+
+Pure Client example:
+
+    .. code-block:: python
+
+        >>> from databend_driver import Client
+        >>>
+        >>> client = Client('http://localhost:8081')
+        >>>
+        >>> client.execute('SHOW TABLES')
+        [('test',)]
+        >>> client.execute('DROP TABLE IF EXISTS test')
+        []
+        >>> client.execute('CREATE TABLE test (x Int32)')
+        []
+        >>> client.execute(
+        ...     'INSERT INTO test (x) VALUES', [(1,)]
+        ... )
+        1
+        >>> client.execute('INSERT INTO test (x) VALUES', [(200,)])
+        1
 
 Features
 ========
@@ -28,31 +51,6 @@ Documentation
 
 // TODO
 
-
-Usage
-=====
-
-
-Pure Client example:
-
-    .. code-block:: python
-
-        >>> from databend_driver import Client
-        >>>
-        >>> client = Client('http://localhost:8081')
-        >>>
-        >>> client.execute('SHOW TABLES')
-        [('test',)]
-        >>> client.execute('DROP TABLE IF EXISTS test')
-        []
-        >>> client.execute('CREATE TABLE test (x Int32)')
-        []
-        >>> client.execute(
-        ...     'INSERT INTO test (x) VALUES', [(1,)]
-        ... )
-        1
-        >>> client.execute('INSERT INTO test (x) VALUES', [(200,)])
-        1
 License
 =======
 
