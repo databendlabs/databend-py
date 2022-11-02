@@ -6,7 +6,7 @@ Databend CLoud Python Driver with native interface support
 Features
 ========
 
-- External data for query processing.
+- Basic SQL.
 
 - TLS support.
 
