@@ -30,7 +30,8 @@ class ClientFromUrlTestCase(TestCase):
         self.assertEqual(r, [('1', 'UInt8'), ('1',)])
 
     def test_iter_query(self):
-        c = Client.from_url('http://localhost:8081')
+        c = Client.from_url('http://root:@localhost:8081')
+        self.assertEqual(c.connection.user, 'root')
 
         result = c.execute_iter("select 1", with_column_types=False)
 
