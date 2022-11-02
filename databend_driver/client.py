@@ -1,8 +1,9 @@
 from urllib.parse import urlparse, parse_qs, unquote
 from databend_driver.connection import Connection
 from databend_driver.util.helper import asbool, Helper
+from databend_driver.util.escape import escape_params
 from databend_driver.result import QueryResult
-import json
+import json, operator
 
 
 class Client(object):
@@ -97,22 +98,61 @@ class Client(object):
                     * The second element information is about columns: names
                       and types.
         """
+        # INSERT queries can use list/tuple/generator of list/tuples/dicts.
+        # For SELECT parameters can be passed in only in dict right now.
+        is_insert = isinstance(params, (list, tuple))
+
+        if is_insert:
+            rv = self.process_insert_query(query, params)
+            return rv
 
         rv = self.process_ordinary_query(
             query, params=params, with_column_types=with_column_types,
             query_id=query_id)
         return rv
 
+    # params = [(1,),(2,)] or params = [(1,2),(2,3)]
+    def process_insert_query(self, query, params):
+        insert_rows = 0
+        if params is not None:
+            for p in params:
+                if len(p) == 1:
+                    s = f'{p}'.replace(',', '')
+                    q = f'{query} {s}'
+                    self.connection.query_with_session(q)
+                    insert_rows += 1
+                else:
+                    q = f'{query} {p}'
+                    self.connection.query_with_session(q)
+                    insert_rows += 1
+
+        return insert_rows
+
     def process_ordinary_query(self, query, params=None, with_column_types=False,
                                query_id=None):
+        if params is not None:
+            query = self.substitute_params(
+                query, params, self.connection.context
+            )
         return self.receive_result(query, query_id=query_id, with_column_types=with_column_types, )
 
     def execute_iter(self, query, params=None, with_column_types=False,
                      query_id=None, settings=None):
+        if params is not None:
+            query = self.substitute_params(
+                query, params, self.connection.context
+            )
         return self.iter_receive_result(query, query_id=query_id, with_column_types=with_column_types)
 
     def iter_process_ordinary_query(self, query, with_column_types=False, query_id=None):
         return self.iter_receive_result(query, query_id=query_id, with_column_types=with_column_types)
+
+    def substitute_params(self, query, params, context):
+        if not isinstance(params, dict):
+            raise ValueError('Parameters are expected in dict form')
+
+        escaped = escape_params(params, context)
+        return query % escaped
 
     @classmethod
     def from_url(cls, url):

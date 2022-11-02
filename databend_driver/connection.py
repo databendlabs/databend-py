@@ -8,8 +8,41 @@ import requests
 from mysql.connector.errors import Error
 from . import log
 from . import defines
+from .context import Context
 
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+
+
+class ServerInfo(object):
+    def __init__(self, name, version_major, version_minor, version_patch,
+                 revision, timezone, display_name):
+        self.name = name
+        self.version_major = version_major
+        self.version_minor = version_minor
+        self.version_patch = version_patch
+        self.revision = revision
+        self.timezone = timezone
+        self.display_name = display_name
+
+        super(ServerInfo, self).__init__()
+
+    def version_tuple(self):
+        return self.version_major, self.version_minor, self.version_patch
+
+    def __repr__(self):
+        version = '%s.%s.%s' % (
+            self.version_major, self.version_minor, self.version_patch
+        )
+        items = [
+            ('name', self.name),
+            ('version', version),
+            ('revision', self.revision),
+            ('timezone', self.timezone),
+            ('display_name', self.display_name)
+        ]
+
+        params = ', '.join('{}={}'.format(key, value) for key, value in items)
+        return '<ServerInfo(%s)>' % (params)
 
 
 def get_error(response):
@@ -44,6 +77,7 @@ class Connection(object):
         self.session = {}
         self.additional_headers = dict()
         self.query_option = None
+        self.context = Context()
         self.schema = 'http'
         if self.secure:
             self.schema = 'https'
@@ -65,7 +99,7 @@ class Connection(object):
         return '{}:{}'.format(self.host, self.port)
 
     def disconnect(self):
-        self._session = {}
+        self.session = {}
 
     def query(self, statement, session):
         url = self.format_url()
@@ -90,7 +124,7 @@ class Connection(object):
         return f"{self.schema}://{self.host}:{self.port}/v1/query/"
 
     def reset_session(self):
-        self._session = {}
+        self.session = {}
 
     def next_page(self, next_uri):
         url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
@@ -98,24 +132,24 @@ class Connection(object):
 
     # return a list of response util empty next_uri
     def query_with_session(self, statement):
-        current_session = self._session
+        current_session = self.session
         response_list = list()
         response = self.query(statement, current_session)
         log.logger.debug(f"response content: {response}")
         response_list.append(response)
         start_time = time.time()
         time_limit = 12
-        session = response['session']
+        session = response['session_id']
         if session:
-            self._session = session
+            self.session = session
         while response['next_uri'] is not None:
             resp = self.next_page(response['next_uri'])
             response = json.loads(json.loads(resp.content))
             log.logger.debug(f"Sql in progress, fetch next_uri content: {response}")
             self.check_error(response)
-            session = response['session']
+            session = response['session_id']
             if session:
-                self._session = session
+                self.session = session
             response_list.append(response)
             if time.time() - start_time > time_limit:
                 log.logger.warning(
