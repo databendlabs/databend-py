@@ -15,6 +15,12 @@ Databend CLoud Python Driver with native http interface support
 .. image:: https://img.shields.io/pypi/pyversions/databend-driver.svg
     :target: https://pypi.org/project/databend-driver
 
+Installation
+====
+
+ .. code-block:: shell
+pip install databend-driver
+
 Usage
 =====
 
