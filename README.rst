@@ -1,7 +1,18 @@
 databend-py
 ===
-
 Databend CLoud Python Driver with native http interface support
+
+.. image:: https://img.shields.io/pypi/v/databend-driver.svg
+    :target: https://pypi.org/project/databend-driver
+
+.. image:: https://coveralls.io/repos/github/databendcloud/databend-py/badge.svg?branch=master
+    :target: https://coveralls.io/github/databendcloud/databend-py?branch=master
+
+.. image:: https://img.shields.io/pypi/l/databend-driver.svg
+    :target: https://pypi.org/project/databend-driver
+
+.. image:: https://img.shields.io/pypi/pyversions/databend-driver.svg
+    :target: https://pypi.org/project/databend-driver
 
 Usage
 =====
