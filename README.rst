@@ -1,7 +1,7 @@
 databend-py
 ===
 
-Databend CLoud Python Driver with native interface support
+Databend CLoud Python Driver with native http interface support
 
 Usage
 =====
