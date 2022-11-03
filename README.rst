@@ -73,4 +73,4 @@ Documentation
 License
 =======
 
-ClickHouse Python Driver is distributed under the `Apache license`.
+Databend Python Driver is distributed under the `Apache license`.
