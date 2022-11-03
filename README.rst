@@ -30,7 +30,7 @@ Pure Client example:
 
         >>> from databend_driver import Client
         >>>
-        >>> client = Client('http://localhost:8081')
+        >>> client = Client('http://root:rootlocalhost:8081/db')
         >>>
         >>> client.execute('SHOW TABLES')
         [('test',)]
