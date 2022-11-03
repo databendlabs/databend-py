@@ -34,9 +34,10 @@ setup(
     long_description=long_description,
 
     url=github_url,
+    packages=['databend_driver'],
 
-    author='',
-    author_email='',
+    author='Databend Cloud Team',
+    author_email='hantmac@outlook.com',
 
     license='Apache License',
 )
