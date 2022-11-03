@@ -1,5 +1,6 @@
 databend-py
-===
+====
+
 Databend CLoud Python Driver with native http interface support
 
 .. image:: https://img.shields.io/pypi/v/databend-driver.svg
