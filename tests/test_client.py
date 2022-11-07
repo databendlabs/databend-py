@@ -30,12 +30,13 @@ class ClientFromUrlTestCase(TestCase):
         self.assertEqual(r, [('1', 'UInt8'), ('1',)])
 
         c.execute('DROP TABLE IF EXISTS test')
-        c.execute('CREATE TABLE if not exists test (x Int32)')
-        r1 = c.execute('INSERT INTO test (x) VALUES', [(1,)])
+        c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
+        c.execute("DESC TABLE test")
+        r1 = c.execute('INSERT INTO test (x,y) VALUES', [(1, 'yy')])
         # insert_rows = 1
         self.assertEqual(r1, 1)
         ss = c.execute('select * from test')
-        self.assertEqual(ss, [('1',)])
+        self.assertEqual(ss, [('1', 'yy')])
 
     def test_iter_query(self):
         c = Client.from_url('http://root:@localhost:8081')
