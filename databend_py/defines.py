@@ -4,6 +4,6 @@ DEFAULT_PASSWORD = ''
 DEFAULT_SESSION_IDLE_TIME = 30
 
 DBMS_NAME = 'Databend'
-CLIENT_NAME = 'python-driver'
+CLIENT_NAME = 'python-py'
 
 STRINGS_ENCODING = 'utf-8'

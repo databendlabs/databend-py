@@ -31,7 +31,7 @@ class ClientFromUrlTestCase(TestCase):
 
         c.execute('DROP TABLE IF EXISTS test')
         c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
-        c.execute("DESC TABLE test")
+        c.execute('DESC  test')
         r1 = c.execute('INSERT INTO test (x,y) VALUES', [(1, 'yy')])
         # insert_rows = 1
         self.assertEqual(r1, 1)

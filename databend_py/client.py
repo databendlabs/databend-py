@@ -42,7 +42,7 @@ class Client(object):
 
     def receive_data(self, next_uri: str):
         resp = self.connection.next_page(next_uri)
-        raw_data = json.loads(json.loads(resp.content))
+        raw_data = json.loads(resp.content)
         helper = self.helper()
         helper.response = raw_data
         helper.check_error()

@@ -139,15 +139,15 @@ class Connection(object):
         response_list.append(response)
         start_time = time.time()
         time_limit = 12
-        session = response['session_id']
+        session = response['session']
         if session:
             self.session = session
         while response['next_uri'] is not None:
             resp = self.next_page(response['next_uri'])
-            response = json.loads(json.loads(resp.content))
+            response = json.loads(resp.content)
             log.logger.debug(f"Sql in progress, fetch next_uri content: {response}")
             self.check_error(response)
-            session = response['session_id']
+            session = response['session']
             if session:
                 self.session = session
             response_list.append(response)
