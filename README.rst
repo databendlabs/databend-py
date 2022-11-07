@@ -1,5 +1,5 @@
 databend-py
-====
+===========
 
 Databend Cloud Python Driver with native http interface support
 
@@ -16,10 +16,9 @@ Databend Cloud Python Driver with native http interface support
     :target: https://pypi.org/project/databend-driver
 
 Installation
-====
+============
 
- .. code-block:: shell
-pip install databend-driver
+pip install databend-py
 
 Usage
 =====
@@ -28,7 +27,7 @@ Pure Client example:
 
     .. code-block:: python
 
-        >>> from databend_driver import Client
+        >>> from databend_pyimport Client
         >>>
         >>> client = Client('http://root:rootlocalhost:8081/db')
         >>>

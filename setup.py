@@ -2,14 +2,14 @@ import os
 import re
 from codecs import open
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 
 def read_version():
     regexp = re.compile(r'^VERSION\W*=\W*\(([^\(\)]*)\)')
-    init_py = os.path.join(here, 'databend_driver', '__init__.py')
+    init_py = os.path.join(here, 'databend_py', '__init__.py')
     with open(init_py, encoding='utf-8') as f:
         for line in f:
             match = regexp.match(line)
@@ -17,7 +17,7 @@ def read_version():
                 return match.group(1).replace(', ', '.')
         else:
             raise RuntimeError(
-                'Cannot find version in databend_driver/__init__.py'
+                'Cannot find version in databend_py/__init__.py'
             )
 
 
@@ -27,14 +27,21 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='databend-driver',
+    name='databend-py',
     version=read_version(),
 
     description='Python driver with native interface for Databend',
     long_description=long_description,
 
     url=github_url,
-    packages=['databend_driver'],
+    packages=find_packages('.', exclude=['tests*']),
+    python_requires='>=3.4, <4',
+    install_requires=[
+        'pytz',
+        'tzlocal',
+        'mysql.connector',
+        'tzlocal<2.1; python_version=="3.5"'
+    ],
 
     author='Databend Cloud Team',
     author_email='hantmac@outlook.com',
@@ -43,16 +50,12 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
 
-
         'Environment :: Console',
-
 
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',
 
-
         'Operating System :: OS Independent',
-
 
         'Programming Language :: SQL',
         'Programming Language :: Python :: 3',
@@ -73,4 +76,5 @@ setup(
     ],
 
     keywords='databend db database cloud analytics',
+    test_suite='pytest'
 )

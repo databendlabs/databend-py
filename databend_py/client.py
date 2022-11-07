@@ -1,8 +1,8 @@
 from urllib.parse import urlparse, parse_qs, unquote
-from databend_driver.connection import Connection
-from databend_driver.util.helper import asbool, Helper
-from databend_driver.util.escape import escape_params
-from databend_driver.result import QueryResult
+from .connection import Connection
+from .util.helper import asbool, Helper
+from .util.escape import escape_params
+from .result import QueryResult
 import json, operator
 
 

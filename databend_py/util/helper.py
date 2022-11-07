@@ -1,5 +1,5 @@
 from itertools import islice, tee
-from databend_driver.errors import ServerException
+from databend_py.errors import ServerException
 
 
 class Helper(object):

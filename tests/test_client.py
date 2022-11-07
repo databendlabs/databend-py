@@ -1,4 +1,4 @@
-from databend_driver.client import Client
+from databend_py.client import Client
 from tests.testcase import TestCase
 import types
 

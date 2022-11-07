@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import subprocess
 from unittest import TestCase
 
-from databend_driver.client import Client
+from databend_py.client import Client
 from tests import log
 
 file_config = configparser.ConfigParser()
