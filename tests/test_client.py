@@ -1,6 +1,6 @@
 from databend_py.client import Client
 from tests.testcase import TestCase
-import types
+import types, os
 
 
 class ClientFromUrlTestCase(TestCase):
@@ -21,11 +21,13 @@ class ClientFromUrlTestCase(TestCase):
         self.assertEqual(c.connection.password, '')
 
     def test_ordinary_query(self):
-        c = Client.from_url('http://localhost:8081')
+        # if use the host from databend cloud, must set the 'ADDITIONAL_HEADERS':
+        # os.environ['ADDITIONAL_HEADERS'] = 'X-DATABENDCLOUD-TENANT=TENANT,X-DATABENDCLOUD-WAREHOUSE=WAREHOUSE'
+        c = Client.from_url('http://root:@localhost:8081')
         r = c.execute("select 1", with_column_types=False)
         self.assertEqual(r, [('1',)])
 
-        # test with_column_types=False
+        # test with_column_types=True
         r = c.execute("select 1", with_column_types=True)
         self.assertEqual(r, [('1', 'UInt8'), ('1',)])
 

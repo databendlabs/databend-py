@@ -2,6 +2,7 @@ import json
 import os
 import base64
 import time
+from requests.auth import HTTPBasicAuth
 
 import environs
 import requests
@@ -83,12 +84,14 @@ class Connection(object):
             self.schema = 'https'
         e = environs.Env()
         if os.getenv("ADDITIONAL_HEADERS") is not None:
+            print(os.getenv("ADDITIONAL_HEADERS"))
             self.additional_headers = e.dict("ADDITIONAL_HEADERS")
 
     def make_headers(self):
         if "Authorization" not in self.additional_headers:
             return {
-                **headers, "Authorization":
+                **headers, **self.additional_headers,
+                "Authorization":
                     "Basic " + base64.b64encode("{}:{}".format(
                         self.user, self.password).encode(encoding="utf-8")).decode()
             }
@@ -110,7 +113,9 @@ class Connection(object):
         log.logger.debug(f"http headers {self.make_headers()}")
         response = requests.post(url,
                                  data=json.dumps(query_sql),
-                                 headers=self.make_headers(), verify=False)
+                                 headers=self.make_headers(),
+                                 auth=HTTPBasicAuth(self.user, self.password),
+                                 verify=True)
 
         try:
             return json.loads(response.content)
@@ -121,6 +126,10 @@ class Connection(object):
             raise
 
     def format_url(self):
+        if self.schema == "https" and self.port is None:
+            self.port = 443
+        elif self.schema == "http" and self.port is None:
+            self.port = 80
         return f"{self.schema}://{self.host}:{self.port}/v1/query/"
 
     def reset_session(self):

@@ -40,6 +40,9 @@ setup(
         'pytz',
         'tzlocal',
         'mysql.connector',
+        'environs',
+        'requests',
+        'types',
         'tzlocal<2.1; python_version=="3.5"'
     ],
 
