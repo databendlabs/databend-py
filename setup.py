@@ -38,12 +38,9 @@ setup(
     python_requires='>=3.4, <4',
     install_requires=[
         'pytz',
-        'tzlocal',
         'mysql.connector',
         'environs',
         'requests',
-        'types',
-        'tzlocal<2.1; python_version=="3.5"'
     ],
 
     author='Databend Cloud Team',
