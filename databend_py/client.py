@@ -105,7 +105,7 @@ class Client(object):
 
         if is_insert:
             rv = self.process_insert_query(query, params)
-            return rv
+            return [], rv
 
         column_types, rv = self.process_ordinary_query(
             query, params=params, with_column_types=with_column_types,
