@@ -43,13 +43,14 @@ class ClientFromUrlTestCase(TestCase):
         # r = c.execute("select 1", with_column_types=True)
         # self.assertEqual(r, [('1', 'UInt8'), ('1',)])
         #
-        # c.execute('DROP TABLE IF EXISTS test')
-        # c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
+        c.execute('DROP TABLE IF EXISTS test')
+        c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
         # c.execute('DESC  test')
-        # r1 = c.execute('INSERT INTO test (x,y) VALUES', [(1, 'yy')])
+        r1 = c.execute('INSERT INTO test (x,y) VALUES (%,%)', [1, 'yy', 2, 'xx'])
         # # insert_rows = 1
         # self.assertEqual(r1, 1)
-        # ss = c.execute('select * from test')
+        _, ss = c.execute('select * from test')
+        print(ss)
         # self.assertEqual(ss, [('1', 'yy')])
 
     def test_iter_query(self):

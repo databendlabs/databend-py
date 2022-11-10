@@ -115,8 +115,15 @@ class Client(object):
     # params = [(1,),(2,)] or params = [(1,2),(2,3)]
     def process_insert_query(self, query, params):
         insert_rows = 0
+        if "values" in query:
+            query = query.split("values")[0] + 'values'
+        elif "VALUES" in query:
+            query = query.split("VALUES")[0] + 'VALUES'
+
+        batch_size = query.count(',') + 1
         if params is not None:
-            for p in params:
+            tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
+            for p in tuple_ls:
                 if len(p) == 1:
                     s = f'{p}'.replace(',', '')
                     q = f'{query} {s}'
