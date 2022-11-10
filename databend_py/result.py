@@ -34,8 +34,7 @@ class QueryResult(object):
             for r in rd:
                 data.append(tuple(r))
 
-        self.columns_with_types.extend(data)
         if self.with_column_types:
-            return self.columns_with_types
+            return self.columns_with_types, data
         else:
-            return data
+            return [], data

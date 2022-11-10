@@ -66,9 +66,10 @@ class Client(object):
         gen = self.data_generator(raw_data)
         result = self.query_result_cls(
             gen, raw_data, with_column_types=with_column_types)
-        for rows in result.get_result():
-            for row in rows:
-                yield row
+        _, rows = result.get_result()
+        for row in rows:
+            for r in row:
+                yield r
 
     def execute(self, query, params=None, with_column_types=False,
                 query_id=None, settings=None):
@@ -106,10 +107,10 @@ class Client(object):
             rv = self.process_insert_query(query, params)
             return rv
 
-        rv = self.process_ordinary_query(
+        column_types, rv = self.process_ordinary_query(
             query, params=params, with_column_types=with_column_types,
             query_id=query_id)
-        return rv
+        return column_types, rv
 
     # params = [(1,),(2,)] or params = [(1,2),(2,3)]
     def process_insert_query(self, query, params):
