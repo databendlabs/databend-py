@@ -67,7 +67,7 @@ class Connection(object):
     #   'database': 'default'
     # }
     def __init__(self, host, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
-                 database=defines.DEFAULT_DATABASE, secure=False, ):
+                 database=defines.DEFAULT_DATABASE, secure=True, ):
         self.host = host
         self.port = port
         self.user = user
@@ -121,7 +121,7 @@ class Connection(object):
             return json.loads(response.content)
         except Exception as err:
             log.logger.error(
-                f"http error, SQL: {statement}\ncontent: {response.content}\nerror msg:{str(err)}"
+                f"http error on {url}, SQL: {statement} content: {response.content} error msg:{str(err)}"
             )
             raise
 
