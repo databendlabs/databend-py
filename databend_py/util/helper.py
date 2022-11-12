@@ -22,9 +22,8 @@ class Helper(object):
         if self.response['error'] is None:
             return None
 
-        # Wrap errno into msg, for result check
         return ServerException(message=self.response['error']['message'],
-                               code=self.response['error']['code'])
+                               code=self.response['error'].get('code'))
 
     def check_error(self):
         error = self.get_error()
