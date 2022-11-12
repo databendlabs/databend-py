@@ -23,6 +23,21 @@ pip install databend-py
 Usage
 =====
 
+Use the next code to check connection:
+
+  .. code-block:: python
+
+    >>> from databend_py import Client
+    >>> client = Client(
+        host='tenant--warehouse.ch.datafusecloud.com',
+        database="default",
+        user="user",
+        password="password")
+    >>> print(client.execute("SELECT 1"))
+
+The `host`, `user`, `password` info will be found in databend cloud warehouse connect page as flows:
+
+
 Pure Client example:
 
     .. code-block:: python
