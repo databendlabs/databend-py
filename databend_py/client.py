@@ -197,8 +197,8 @@ class Client(object):
         if url.password is not None:
             kwargs['password'] = unquote(url.password)
 
-        if url.scheme == 'https':
-            kwargs['secure'] = True
+        if url.scheme == 'http':
+            kwargs['secure'] = False
 
         for name, value in parse_qs(url.query).items():
             if not value or not len(value):
