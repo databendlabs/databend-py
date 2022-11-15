@@ -1,9 +1,11 @@
+import io
+import re
 from urllib.parse import urlparse, parse_qs, unquote
 from .connection import Connection
 from .util.helper import asbool, Helper
 from .util.escape import escape_params
 from .result import QueryResult
-import json, operator
+import json, operator, csv, uuid, requests, time, os
 
 
 class Client(object):
@@ -119,20 +121,27 @@ class Client(object):
             query = query.split("values")[0] + 'values'
         elif "VALUES" in query:
             query = query.split("VALUES")[0] + 'VALUES'
+        insert_re = re.compile("(?i)^INSERT INTO\s+\x60?([\w.^\(]+)\x60?\s*(\([^\)]*\))?")
+        match = insert_re.match(query)
+        table_name = match[1]
 
         batch_size = query.count(',') + 1
         if params is not None:
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
-            for p in tuple_ls:
-                if len(p) == 1:
-                    s = f'{p}'.replace(',', '')
-                    q = f'{query} {s}'
-                    self.connection.query_with_session(q)
-                    insert_rows += 1
-                else:
-                    q = f'{query} {p}'
-                    self.connection.query_with_session(q)
-                    insert_rows += 1
+            # for p in tuple_ls:
+            #     if len(p) == 1:
+            #         s = f'{p}'.replace(',', '')
+            #         q = f'{query} {s}'
+            #         self.connection.query_with_session(q)
+            #         insert_rows += 1
+            #     else:
+            #         q = f'{query} {p}'
+            #         self.connection.query_with_session(q)
+            #         insert_rows += 1
+            filename = self.generate_csv(tuple_ls)
+            csv_data = self.get_csv_data(filename)
+            self.sync_csv_file_into_table(filename, csv_data, table_name)
+            insert_rows = len(tuple_ls)
 
         return insert_rows
 
@@ -227,3 +236,31 @@ class Client(object):
             kwargs['settings'] = settings
 
         return cls(host, **kwargs)
+
+    def generate_csv(self, bindings):
+        file_name = f'{uuid.uuid4()}.csv'
+        with open(file_name, "w+") as csvfile:
+            spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            spamwriter.writerows(bindings)
+
+        return file_name
+
+    def get_csv_data(self, filename):
+        with open(filename, "r") as csvfile:
+            return io.StringIO(csvfile.read())
+
+    def stage_csv_file(self, filename, data):
+        stage_path = "@~/%s" % filename
+        _, row = self.execute('presign upload %s' % stage_path)
+        presigned_url = row[0][2]
+        headers = json.loads(row[0][1])
+        resp = requests.put(presigned_url, headers=headers, data=data)
+        resp.raise_for_status()
+        return stage_path
+
+    def sync_csv_file_into_table(self, filename, data, table):
+        start = time.time()
+        stage_path = self.stage_csv_file(filename, data)
+        _, _ = self.execute("COPY INTO %s FROM %s" % (table, stage_path))
+        print("sync %s duration:%ss" % (filename, int(time.time() - start)))
+        os.remove(filename)
