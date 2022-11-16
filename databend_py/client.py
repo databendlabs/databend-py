@@ -122,7 +122,9 @@ class Client(object):
         elif "VALUES" in query:
             query = query.split("VALUES")[0] + 'VALUES'
         insert_re = re.compile("(?i)^INSERT INTO\s+\x60?([\w.^\(]+)\x60?\s*(\([^\)]*\))?")
-        match = insert_re.match(query)
+        match = insert_re.match(query.strip())
+        if len(match.group().split(' ')) < 2:
+            raise Exception("Not standard insert statement")
         table_name = match[1]
 
         batch_size = query.count(',') + 1
