@@ -36,4 +36,4 @@ class DatabendDataType:
 
 if __name__ == '__main__':
     d = DatabendDataType()
-    print(d.type_convert_fn("string")('dkfjksj'))
+    print(d.type_convert_fn("Uint64")('0'))
