@@ -106,6 +106,8 @@ class Client(object):
         is_insert = isinstance(params, (list, tuple))
 
         if is_insert:
+            # remove the `\n` '\s' `\t` in the SQL
+            query = " ".join([s.strip() for s in query.splitlines()]).strip()
             rv = self.process_insert_query(query, params)
             return [], rv
 
@@ -130,16 +132,6 @@ class Client(object):
         batch_size = query.count(',') + 1
         if params is not None:
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
-            # for p in tuple_ls:
-            #     if len(p) == 1:
-            #         s = f'{p}'.replace(',', '')
-            #         q = f'{query} {s}'
-            #         self.connection.query_with_session(q)
-            #         insert_rows += 1
-            #     else:
-            #         q = f'{query} {p}'
-            #         self.connection.query_with_session(q)
-            #         insert_rows += 1
             filename = self.generate_csv(tuple_ls)
             csv_data = self.get_csv_data(filename)
             self.sync_csv_file_into_table(filename, csv_data, table_name)
