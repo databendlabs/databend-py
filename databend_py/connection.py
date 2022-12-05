@@ -11,7 +11,7 @@ from . import log
 from . import defines
 from .context import Context
 
-headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-DATABEND-ROUTE': 'warehouse'}
 
 
 class ServerInfo(object):

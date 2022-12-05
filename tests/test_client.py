@@ -62,6 +62,6 @@ class ClientFromUrlTestCase(TestCase):
         self.assertIsInstance(result, types.GeneratorType)
         result_list = [i for i in result]
         print(result_list)
-        self.assertEqual(result_list, ['1'])
+        self.assertEqual(result_list, [1])
 
         self.assertEqual(list(result), [])
