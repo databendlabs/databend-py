@@ -26,10 +26,10 @@ class QueryResult(object):
         datas = raw_data.get("data")
         for field in fields:
             column_type = (field['name'], field["data_type"]["type"])
-            if field["data_type"]["type"].lower() in ['array', 'json', 'map']:
-                self.column_type_dic[field['name']] = field["data_type"]["type"]
-            else:
+            if field["data_type"]["type"].lower() == "nullable":
                 self.column_type_dic[field['name']] = field["data_type"]["inner"]['type']
+            else:
+                self.column_type_dic[field['name']] = field["data_type"]["type"]
             column_name_ls.append(field['name'])
             self.columns_with_types.append(column_type)
 
