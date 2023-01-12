@@ -26,7 +26,10 @@ class QueryResult(object):
         datas = raw_data.get("data")
         for field in fields:
             column_type = (field['name'], field["data_type"]["type"])
-            self.column_type_dic[field['name']] = field["data_type"]["type"]
+            if field["data_type"]["type"].lower() in ['array', 'json', 'map']:
+                self.column_type_dic[field['name']] = field["data_type"]["type"]
+            else:
+                self.column_type_dic[field['name']] = field["data_type"]["inner"]['type']
             column_name_ls.append(field['name'])
             self.columns_with_types.append(column_type)
 
@@ -45,7 +48,10 @@ class QueryResult(object):
         for read_data in self.column_data_dict_list:
             tmp_list = []
             for c, d in read_data.items():
-                tmp_list.append(self.type_convert(self.column_type_dic[c])(d))
+                if d == 'NULL':
+                    tmp_list.append(d)
+                else:
+                    tmp_list.append(self.type_convert(self.column_type_dic[c])(d))
             data.append(tuple(tmp_list))
 
         if self.with_column_types:
