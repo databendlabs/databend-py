@@ -79,12 +79,6 @@ Features
   * Nullable(T)
   * Bool
 
-
-Documentation
-=============
-
-// TODO
-
 License
 =======
 
