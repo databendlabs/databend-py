@@ -78,6 +78,11 @@ Features
   * Array(T)
   * Nullable(T)
   * Bool
+  
+Compatibility
+========
+
+-  If databend version >= v0.9.0 or later, you need to use databend-py version >= v0.3.0.
 
 License
 =======
