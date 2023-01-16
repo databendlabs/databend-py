@@ -1,5 +1,6 @@
 import ast
 from .datetypes import DatabendDataType
+import re
 
 
 class QueryResult(object):
@@ -21,15 +22,13 @@ class QueryResult(object):
         super(QueryResult, self).__init__()
 
     def store(self, raw_data: dict):
-        fields = raw_data.get("schema")["fields"]
+        fields = raw_data.get("schema")
         column_name_ls = []
         datas = raw_data.get("data")
         for field in fields:
-            column_type = (field['name'], field["data_type"]["type"])
-            if field["data_type"]["type"].lower() == "nullable":
-                self.column_type_dic[field['name']] = field["data_type"]["inner"]['type']
-            else:
-                self.column_type_dic[field['name']] = field["data_type"]["type"]
+            inner_type = self.extract_type(field["type"])
+            column_type = (field['name'], inner_type)
+            self.column_type_dic[field['name']] = inner_type
             column_name_ls.append(field['name'])
             self.columns_with_types.append(column_type)
 
@@ -58,3 +57,12 @@ class QueryResult(object):
             return self.columns_with_types, data
         else:
             return [], data
+
+    @staticmethod
+    def extract_type(schema_type):
+        if "nullable" in schema_type.lower():
+            return re.findall(r"[(](.*?)[)]", schema_type)[0]
+        elif "(" in schema_type:
+            return schema_type.split("(")[0]
+        else:
+            return schema_type
