@@ -110,6 +110,9 @@ class Connection(object):
         query_sql = {'sql': statement, "string_fields": True}
         if session is not None:
             query_sql['session'] = session
+        else:
+            session = {"database": self.database}
+            query_sql['session'] = session
         log.logger.debug(f"http headers {self.make_headers()}")
         response = requests.post(url,
                                  data=json.dumps(query_sql),
