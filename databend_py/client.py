@@ -34,7 +34,7 @@ class Client(object):
         while raw_data['next_uri'] is not None:
             try:
                 raw_data = self.receive_data(raw_data['next_uri'])
-                if not raw_data:
+                if not raw_data['data']:
                     break
                 yield raw_data
 
