@@ -255,6 +255,6 @@ class Client(object):
     def sync_csv_file_into_table(self, filename, data, table):
         start = time.time()
         stage_path = self.stage_csv_file(filename, data)
-        _, _ = self.execute("COPY INTO %s FROM %s" % (table, stage_path))
+        _, _ = self.execute("COPY INTO %s FROM %s FILE_FORMAT = (type = CSV)" % (table, stage_path))
         print("sync %s duration:%ss" % (filename, int(time.time() - start)))
         os.remove(filename)
