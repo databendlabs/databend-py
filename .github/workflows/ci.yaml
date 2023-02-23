@@ -14,27 +14,22 @@ jobs:
         # image: datafuselabs/databend-query
         image: datafuselabs/databend
         env:
-          DATABEND_DEFAULT_USER: databend
-          DATABEND_DEFAULT_PASSWORD: databend
-        # options: >-
-        #   --health-cmd "curl -fs http://localhost:8000/v1/health || exit 1"
-        #   --health-interval 10s
-        #   --health-timeout 5s
-        #   --health-retries 5
+          QUERY_DEFAULT_USER: databend
+          QUERY_DEFAULT_PASSWORD: databend
         ports:
           - 8000:8000
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Go
-        uses: actions/setup-go@v2
+      - name: Setup Python-3.10
+        uses: actions/setup-python@v4
         with:
-          go-version: "1.18"
+          python-version: '3.10'
 
-      - name: Unittest
+      - name: Pip Install
         run: |
-          make test
+          make install
 
       - name: Verify Service Running
         run: |
@@ -44,6 +39,6 @@ jobs:
 
       - name: Test
         env:
-          TEST_DATABEND_DSN: "databend://databend:databend@localhost:8000/default?idle_timeout=1h&presigned_url_disabled=1&sslmode=disable"
+            TEST_DATABEND_DSN: "http://databend:databend@localhost:8000/default"
         run: |
           make ci

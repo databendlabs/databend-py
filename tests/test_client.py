@@ -1,9 +1,13 @@
-from databend_py.client import Client
-from tests.testcase import TestCase
+from databend_py import Client
+from unittest import TestCase
 import types, os
 
 
-class ClientFromUrlTestCase(TestCase):
+class DatabendPyTestCase(TestCase):
+    def __init__(self, databend_url):
+        super().__init__()
+        self.databend_url = databend_url
+
     def assertHostsEqual(self, client, another, msg=None):
         self.assertEqual(client.connection.host, another, msg=msg)
 
@@ -21,7 +25,7 @@ class ClientFromUrlTestCase(TestCase):
         self.assertEqual(c.connection.password, '')
 
     def test_ordinary_query(self):
-        ss = '''
+        select_test = '''
         select
       null as db,
       name as name,
@@ -32,32 +36,32 @@ class ClientFromUrlTestCase(TestCase):
         '''
         # if use the host from databend cloud, must set the 'ADDITIONAL_HEADERS':
         # os.environ['ADDITIONAL_HEADERS'] = 'X-DATABENDCLOUD-TENANT=TENANT,X-DATABENDCLOUD-WAREHOUSE=WAREHOUSE'
-        c = Client.from_url('http://root:@localhost:8081')
-        # r = c.execute("select 1", with_column_types=False)
-        # self.assertEqual(r, [('1',)])
-        column_types, r = c.execute(ss, with_column_types=True)
-        print(r)
-        print(column_types)
+        c = Client.from_url(self.databend_url)
+        _, r = c.execute("select 1", with_column_types=False)
+        self.assertEqual(r, ([(1,)]))
+        column_types, _ = c.execute(select_test, with_column_types=True)
+        self.assertEqual(column_types, [('db', 'NULL'), ('name', 'String'), ('schema', 'String'), ('type', 'String')])
 
         # test with_column_types=True
-        # r = c.execute("select 1", with_column_types=True)
-        # self.assertEqual(r, [('1', 'UInt8'), ('1',)])
-        #
+        r = c.execute("select 1", with_column_types=True)
+        self.assertEqual(r, ([('1', 'UInt8')], [(1,)]))
+
+    def test_batch_insert(self):
+        c = Client.from_url(self.databend_url)
+
         c.execute('DROP TABLE IF EXISTS test')
         c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
-        # c.execute('DESC  test')
-        r1 = c.execute('INSERT INTO test (x,y) VALUES (%,%)', [1, 'yy', 2, 'xx'])
+        c.execute('DESC  test')
+        _, r1 = c.execute('INSERT INTO test (x,y) VALUES (%,%)', [1, 'yy', 2, 'xx'])
         # # insert_rows = 1
-        # self.assertEqual(r1, 1)
+        self.assertEqual(r1, 2)
         _, ss = c.execute('select * from test')
         print(ss)
-        # self.assertEqual(ss, [('1', 'yy')])
+        self.assertEqual(ss, [(1, 'yy'), (2, 'xx')])
 
     def test_iter_query(self):
-        c = Client.from_url('http://root:@localhost:8081')
-        self.assertEqual(c.connection.user, 'root')
-
-        result = c.execute_iter("select 1", with_column_types=False)
+        client = Client.from_url(self.databend_url)
+        result = client.execute_iter("select 1", with_column_types=False)
 
         self.assertIsInstance(result, types.GeneratorType)
         result_list = [i for i in result]
@@ -65,3 +69,20 @@ class ClientFromUrlTestCase(TestCase):
         self.assertEqual(result_list, [1])
 
         self.assertEqual(list(result), [])
+
+    def tearDown(self) -> None:
+        client = Client.from_url(self.databend_url)
+        client.execute('DROP TABLE IF EXISTS test')
+        client.disconnect()
+
+
+if __name__ == '__main__':
+    print("start test......")
+    # os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8002"
+    dt = DatabendPyTestCase(databend_url=os.getenv("TEST_DATABEND_DSN"))
+    dt.test_simple()
+    dt.test_ordinary_query()
+    # dt.test_batch_insert()
+    dt.test_iter_query()
+    dt.tearDown()
+    print("end test.....")
