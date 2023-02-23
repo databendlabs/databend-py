@@ -80,7 +80,7 @@ class DatabendPyTestCase(TestCase):
 
 if __name__ == '__main__':
     print("start test......")
-    os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8002"
+    # os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8002"
     dt = DatabendPyTestCase(databend_url=os.getenv("TEST_DATABEND_DSN"))
     dt.test_simple()
     dt.test_ordinary_query()
