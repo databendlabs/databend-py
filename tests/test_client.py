@@ -47,7 +47,7 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(r, ([('1', 'UInt8')], [(1,)]))
 
     def test_batch_insert(self):
-        c = Client.from_url('https://cloudapp:d4xu46fzvp6f@tnc7yee14--reload.ch.datafusecloud.com:443')
+        c = Client.from_url(self.databend_url)
 
         c.execute('DROP TABLE IF EXISTS test')
         c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
