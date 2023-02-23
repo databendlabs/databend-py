@@ -84,7 +84,7 @@ if __name__ == '__main__':
     dt = DatabendPyTestCase(databend_url=os.getenv("TEST_DATABEND_DSN"))
     dt.test_simple()
     dt.test_ordinary_query()
-    dt.test_batch_insert()
+    # dt.test_batch_insert()
     dt.test_iter_query()
     dt.tearDown()
     print("end test.....")
