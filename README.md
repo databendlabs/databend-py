@@ -24,6 +24,7 @@ Use the next code to check connection:
 >     host='tenant--warehouse.ch.datafusecloud.com',
 >     database="default",
 >     user="user",
+>     port="443",
 >     password="password")
 > >>> print(client.execute("SELECT 1"))
 > ```
