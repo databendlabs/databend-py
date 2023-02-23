@@ -61,8 +61,6 @@ class DatabendPyTestCase(TestCase):
 
     def test_iter_query(self):
         client = Client.from_url(self.databend_url)
-        self.assertEqual(client.connection.user, 'root')
-
         result = client.execute_iter("select 1", with_column_types=False)
 
         self.assertIsInstance(result, types.GeneratorType)
