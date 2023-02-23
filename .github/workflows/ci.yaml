@@ -14,8 +14,8 @@ jobs:
         # image: datafuselabs/databend-query
         image: datafuselabs/databend
         env:
-          DATABEND_DEFAULT_USER: databend
-          DATABEND_DEFAULT_PASSWORD: databend
+          QUERY_DEFAULT_USER: databend
+          QUERY_DEFAULT_PASSWORD: databend
         ports:
           - 8000:8000
     steps:
