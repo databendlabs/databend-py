@@ -172,8 +172,9 @@ class Client(object):
 
         For example::
 
-            http://[user:password]@localhost:9000/default
-            http://[user:password]@localhost:9440/default
+            http://[user:password]@localhost:8000/default
+            http://[user:password]@localhost:8000/default
+            databend://[user:password]@localhost:8000/default
 
         Any additional querystring arguments will be passed along to
         the Connection class's initializer.
@@ -202,12 +203,12 @@ class Client(object):
 
         if url.scheme == 'http':
             kwargs['secure'] = False
+        if url.scheme == 'https':
+            kwargs['secure'] = True
 
         for name, value in parse_qs(url.query).items():
             if not value or not len(value):
                 continue
-            if url.scheme == 'https':
-                kwargs['secure'] = True
 
             timeouts = {
                 'connect_timeout',

@@ -24,6 +24,9 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(c.connection.database, 'db')
         self.assertEqual(c.connection.password, '')
 
+        c = Client.from_url("databend://localhost:8000/default?secure=true")
+        self.assertEqual(c.connection.schema, "https")
+
     def test_ordinary_query(self):
         select_test = '''
         select
@@ -70,7 +73,7 @@ class DatabendPyTestCase(TestCase):
 
         self.assertEqual(list(result), [])
 
-    def tearDown(self) -> None:
+    def tearDown(self):
         client = Client.from_url(self.databend_url)
         client.execute('DROP TABLE IF EXISTS test')
         client.disconnect()
@@ -78,7 +81,7 @@ class DatabendPyTestCase(TestCase):
 
 if __name__ == '__main__':
     print("start test......")
-    # os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8002"
+    os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8002"
     dt = DatabendPyTestCase(databend_url=os.getenv("TEST_DATABEND_DSN"))
     dt.test_simple()
     dt.test_ordinary_query()
