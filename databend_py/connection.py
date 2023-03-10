@@ -123,12 +123,14 @@ class Connection(object):
                                     verify=True)
             response.raise_for_status()
 
-            while response.json().get('state') == 'Running':
+            j = response.json()
+            while j.get('state') == 'Running':
                 time.sleep(0.5)
                 response = self.next_page(j.get('next_uri'))
                 response.raise_for_status()
+                j = response.json()
 
-            return response.json()
+            return j
 
         except Exception as err:
             log.logger.error(
