@@ -114,14 +114,22 @@ class Connection(object):
             session = {"database": self.database}
             query_sql['session'] = session
         log.logger.debug(f"http headers {self.make_headers()}")
-        response = requests.post(url,
-                                 data=json.dumps(query_sql),
-                                 headers=self.make_headers(),
-                                 auth=HTTPBasicAuth(self.user, self.password),
-                                 verify=True)
 
         try:
-            return json.loads(response.content)
+            response = requests.post(url,
+                                    data=json.dumps(query_sql),
+                                    headers=self.make_headers(),
+                                    auth=HTTPBasicAuth(self.user, self.password),
+                                    verify=True)
+            response.raise_for_status()
+
+            while response.json().get('state') == 'Running':
+                time.sleep(0.5)
+                response = self.next_page(j.get('next_uri'))
+                response.raise_for_status()
+
+            return response.json()
+
         except Exception as err:
             log.logger.error(
                 f"http error on {url}, SQL: {statement} content: {response.content} error msg:{str(err)}"
