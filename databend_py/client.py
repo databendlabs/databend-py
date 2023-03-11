@@ -30,14 +30,10 @@ class Client(object):
         self.connection.disconnect()
 
     def data_generator(self, raw_data):
-
         while raw_data['next_uri'] is not None:
             try:
                 raw_data = self.receive_data(raw_data['next_uri'])
-                if not raw_data['data']:
-                    break
                 yield raw_data
-
             except (Exception, KeyboardInterrupt):
                 self.disconnect()
                 raise

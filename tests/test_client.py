@@ -43,6 +43,7 @@ class DatabendPyTestCase(TestCase):
         _, r = c.execute("select 1", with_column_types=False)
         self.assertEqual(r, ([(1,)]))
         column_types, _ = c.execute(select_test, with_column_types=True)
+        print(column_types)
         self.assertEqual(column_types, [('db', 'NULL'), ('name', 'String'), ('schema', 'String'), ('type', 'String')])
 
         # test with_column_types=True
