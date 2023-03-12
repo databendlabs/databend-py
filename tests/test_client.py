@@ -43,6 +43,7 @@ class DatabendPyTestCase(TestCase):
         _, r = c.execute("select 1", with_column_types=False)
         self.assertEqual(r, ([(1,)]))
         column_types, _ = c.execute(select_test, with_column_types=True)
+        print(column_types)
         self.assertEqual(column_types, [('db', 'NULL'), ('name', 'String'), ('schema', 'String'), ('type', 'String')])
 
         # test with_column_types=True
@@ -81,7 +82,7 @@ class DatabendPyTestCase(TestCase):
 
 if __name__ == '__main__':
     print("start test......")
-    os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8002"
+    # os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8002"
     dt = DatabendPyTestCase(databend_url=os.getenv("TEST_DATABEND_DSN"))
     dt.test_simple()
     dt.test_ordinary_query()
