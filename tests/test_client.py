@@ -26,6 +26,10 @@ class DatabendPyTestCase(TestCase):
 
         c = Client.from_url("databend://localhost:8000/default?secure=true")
         self.assertEqual(c.connection.schema, "https")
+        c = Client.from_url("databend://root:root@localhost:8000/default")
+        self.assertEqual(c.connection.schema, "http")
+        c = Client.from_url("databend://root:root@localhost:8000/default?secure=false")
+        self.assertEqual(c.connection.schema, "http")
 
     def test_ordinary_query(self):
         select_test = '''
