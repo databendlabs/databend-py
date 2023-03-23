@@ -181,11 +181,9 @@ class Client(object):
         kwargs = {}
 
         host = url.hostname
-        port = url.port if url.port is not None else 443
 
         if url.port is not None:
             kwargs['port'] = url.port
-            port = url.port
 
         path = url.path.replace('/', '', 1)
         if path:
