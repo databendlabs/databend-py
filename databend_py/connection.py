@@ -67,7 +67,7 @@ class Connection(object):
     #   'database': 'default'
     # }
     def __init__(self, host, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
-                 database=defines.DEFAULT_DATABASE, secure=True, ):
+                 database=defines.DEFAULT_DATABASE, secure=False, ):
         self.host = host
         self.port = port
         self.user = user

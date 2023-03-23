@@ -175,32 +175,11 @@ class Client(object):
         Any additional querystring arguments will be passed along to
         the Connection class's initializer.
         """
-        url = urlparse(url)
+        parsed_url = urlparse(url)
 
         settings = {}
         kwargs = {}
-
-        host = url.hostname
-
-        if url.port is not None:
-            kwargs['port'] = url.port
-
-        path = url.path.replace('/', '', 1)
-        if path:
-            kwargs['database'] = path
-
-        if url.username is not None:
-            kwargs['user'] = unquote(url.username)
-
-        if url.password is not None:
-            kwargs['password'] = unquote(url.password)
-
-        if url.scheme == 'http':
-            kwargs['secure'] = False
-        if url.scheme == 'https':
-            kwargs['secure'] = True
-
-        for name, value in parse_qs(url.query).items():
+        for name, value in parse_qs(parsed_url.query).items():
             if not value or not len(value):
                 continue
 
@@ -220,6 +199,23 @@ class Client(object):
                 kwargs[name] = float(value)
             else:
                 settings[name] = value
+        secure = kwargs.get("secure", False)
+        kwargs['secure'] = secure
+
+        host = parsed_url.hostname
+
+        if parsed_url.port is not None:
+            kwargs['port'] = parsed_url.port
+
+        path = parsed_url.path.replace('/', '', 1)
+        if path:
+            kwargs['database'] = path
+
+        if parsed_url.username is not None:
+            kwargs['user'] = unquote(parsed_url.username)
+
+        if parsed_url.password is not None:
+            kwargs['password'] = unquote(parsed_url.password)
 
         if settings:
             kwargs['settings'] = settings
