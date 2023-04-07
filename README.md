@@ -35,9 +35,9 @@ will be found in databend cloud warehouse connect page as flows:
 Pure Client example:
 
 > ``` python
-> >>> from databend_pyimport Client
+> >>> from databend_py import Client
 > >>>
-> >>> client = Client('http://root:rootlocalhost:8081/db')
+> >>> client = Client.from_url('http://root@localhost:8000/db')
 > >>>
 > >>> client.execute('SHOW TABLES')
 > [('test',)]
