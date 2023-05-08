@@ -26,6 +26,7 @@ Use the next code to check connection:
 >     user="user",
 >     port="443",
 >     password="password")
+>     settings={"copy_purge":True,"force":True}
 > >>> print(client.execute("SELECT 1"))
 > ```
 

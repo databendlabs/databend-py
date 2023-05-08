@@ -12,11 +12,12 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(client.connection.host, another, msg=msg)
 
     def test_simple(self):
-        c = Client.from_url('https://app.databend.com:443')
+        c = Client.from_url('https://app.databend.com:443?copy_purge=True')
 
         self.assertHostsEqual(c, 'app.databend.com')
         self.assertEqual(c.connection.database, 'default')
         self.assertEqual(c.connection.user, 'root')
+        self.assertEqual(c.connection.copy_purge, True)
 
         c = Client.from_url('https://host:443/db')
 
@@ -30,6 +31,11 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(c.connection.schema, "http")
         c = Client.from_url("databend://root:root@localhost:8000/default?secure=false")
         self.assertEqual(c.connection.schema, "http")
+
+    def test_session_settings(self):
+        session_settings = {"db": "database"}
+        c = Client(host="localhost", port=8000, user="root", password="root", session_settings={"db": "database"})
+        self.assertEqual(c.connection.client_session, session_settings)
 
     def test_ordinary_query(self):
         select_test = '''
@@ -55,8 +61,8 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(r, ([('1', 'UInt8')], [(1,)]))
 
     def test_batch_insert(self):
-        c = Client.from_url(self.databend_url)
-
+        # with copy on purge
+        c = Client(host="localhost", port=8000, user="root", password="root", settings={"copy_purge": True})
         c.execute('DROP TABLE IF EXISTS test')
         c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
         c.execute('DESC  test')

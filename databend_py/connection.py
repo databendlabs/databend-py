@@ -67,15 +67,16 @@ class Connection(object):
     #   'database': 'default'
     # }
     def __init__(self, host, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
-                 database=defines.DEFAULT_DATABASE, secure=False, ):
+                 database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None):
         self.host = host
         self.port = port
         self.user = user
         self.password = password
         self.database = database
         self.secure = secure
+        self.copy_purge = copy_purge
         self.session_max_idle_time = defines.DEFAULT_SESSION_IDLE_TIME
-        self.session = {}
+        self.client_session = session_settings
         self.additional_headers = dict()
         self.query_option = None
         self.context = Context()
@@ -102,26 +103,27 @@ class Connection(object):
         return '{}:{}'.format(self.host, self.port)
 
     def disconnect(self):
-        self.session = {}
+        self.client_session = dict()
 
-    def query(self, statement, session):
+    def query(self, statement):
         url = self.format_url()
         log.logger.debug(f"http sql: {statement}")
         query_sql = {'sql': statement, "string_fields": True}
-        if session is not None:
-            query_sql['session'] = session
+        if self.client_session is not None and len(self.client_session) != 0:
+            query_sql['session'] = self.client_session
         else:
-            session = {"database": self.database}
-            query_sql['session'] = session
+            self.client_session = {"db": self.database}
+            query_sql['session'] = self.client_session
         log.logger.debug(f"http headers {self.make_headers()}")
         response = requests.post(url,
                                  data=json.dumps(query_sql),
                                  headers=self.make_headers(),
                                  auth=HTTPBasicAuth(self.user, self.password),
                                  verify=True)
-
         try:
-            return json.loads(response.content)
+            resp_dict = json.loads(response.content)
+            self.client_session = resp_dict["session"]
+            return resp_dict
         except Exception as err:
             log.logger.error(
                 f"http error on {url}, SQL: {statement} content: {response.content} error msg:{str(err)}"
@@ -136,7 +138,7 @@ class Connection(object):
         return f"{self.schema}://{self.host}:{self.port}/v1/query/"
 
     def reset_session(self):
-        self.session = {}
+        self.client_session = dict()
 
     def next_page(self, next_uri):
         url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
@@ -144,16 +146,16 @@ class Connection(object):
 
     # return a list of response util empty next_uri
     def query_with_session(self, statement):
-        current_session = self.session
+        current_session = self.client_session
         response_list = list()
-        response = self.query(statement, current_session)
+        response = self.query(statement)
         log.logger.debug(f"response content: {response}")
         response_list.append(response)
         start_time = time.time()
         time_limit = 12
         session = response['session']
         if session:
-            self.session = session
+            self.client_session = session
         while response['next_uri'] is not None:
             resp = self.next_page(response['next_uri'])
             response = json.loads(resp.content)
@@ -161,7 +163,7 @@ class Connection(object):
             self.check_error(response)
             session = response['session']
             if session:
-                self.session = session
+                self.client_session = session
             response_list.append(response)
             if time.time() - start_time > time_limit:
                 log.logger.warning(
