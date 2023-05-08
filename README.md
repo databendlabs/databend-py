@@ -38,7 +38,7 @@ Pure Client example:
 > ``` python
 > >>> from databend_py import Client
 > >>>
-> >>> client = Client.from_url('http://root@localhost:8000/db')
+> >>> client = Client.from_url('http://root@localhost:8000/db?secure=False&copy_purge=True')
 > >>>
 > >>> client.execute('SHOW TABLES')
 > [('test',)]
