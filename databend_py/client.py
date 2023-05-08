@@ -197,6 +197,7 @@ class Client(object):
                 kwargs[name] = asbool(value)
             elif name == 'copy_purge':
                 kwargs[name] = asbool(value)
+                settings[name] = asbool(value)
             elif name in timeouts:
                 kwargs[name] = float(value)
             else:
