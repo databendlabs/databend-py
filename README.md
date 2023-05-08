@@ -26,6 +26,7 @@ Use the next code to check connection:
 >     user="user",
 >     port="443",
 >     password="password")
+>     settings={"copy_purge":True,"force":True}
 > >>> print(client.execute("SELECT 1"))
 > ```
 
@@ -37,7 +38,7 @@ Pure Client example:
 > ``` python
 > >>> from databend_py import Client
 > >>>
-> >>> client = Client.from_url('http://root@localhost:8000/db')
+> >>> client = Client.from_url('http://root@localhost:8000/db?secure=False&copy_purge=True')
 > >>>
 > >>> client.execute('SHOW TABLES')
 > [('test',)]

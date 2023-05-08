@@ -47,7 +47,7 @@ class Client(object):
         return raw_data
 
     def receive_result(self, query, query_id=None, with_column_types=False):
-        raw_data = self.connection.query(query, None)
+        raw_data = self.connection.query(query)
         helper = self.helper()
         helper.response = raw_data
         helper.check_error()
@@ -57,7 +57,7 @@ class Client(object):
         return result.get_result()
 
     def iter_receive_result(self, query, query_id=None, with_column_types=False):
-        raw_data = self.connection.query(query, None)
+        raw_data = self.connection.query(query)
         helper = self.helper()
         helper.response = raw_data
         helper.check_error()
@@ -168,7 +168,7 @@ class Client(object):
 
         For example::
 
-            http://[user:password]@localhost:8000/default
+            https://[user:password]@localhost:8000/default?secure=True
             http://[user:password]@localhost:8000/default
             databend://[user:password]@localhost:8000/default
 
@@ -195,10 +195,12 @@ class Client(object):
                 kwargs[name] = value
             elif name == 'secure':
                 kwargs[name] = asbool(value)
+            elif name == 'copy_purge':
+                kwargs[name] = asbool(value)
             elif name in timeouts:
                 kwargs[name] = float(value)
             else:
-                settings[name] = value
+                settings[name] = value  # settings={'copy_purge':False}
         secure = kwargs.get("secure", False)
         kwargs['secure'] = secure
 
@@ -246,6 +248,35 @@ class Client(object):
     def sync_csv_file_into_table(self, filename, data, table):
         start = time.time()
         stage_path = self.stage_csv_file(filename, data)
-        _, _ = self.execute("COPY INTO %s FROM %s FILE_FORMAT = (type = CSV)" % (table, stage_path))
+        copy_options = self.generate_copy_options()
+        print(copy_options)
+        _, _ = self.execute(
+            f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = CSV)\
+             PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
+              SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
         print("sync %s duration:%ss" % (filename, int(time.time() - start)))
         os.remove(filename)
+
+    def generate_copy_options(self):
+        # copy options docs: https://databend.rs/doc/sql-commands/dml/dml-copy-into-table#copyoptions
+        copy_options = {}
+        if "copy_purge" in self.settings:
+            copy_options["PURGE"] = self.settings["copy_purge"]
+        else:
+            copy_options["PURGE"] = False
+
+        if "force" in self.settings:
+            copy_options["FORCE"] = self.settings["force"]
+        else:
+            copy_options["FORCE"] = False
+
+        if "size_limit" in self.settings:
+            copy_options["SIZE_LIMIT"] = self.settings["size_limit"]
+        else:
+            copy_options["SIZE_LIMIT"] = 0
+        if "on_error" in self.settings:
+            copy_options["ON_ERROR"] = self.settings["on_error"]
+
+        else:
+            copy_options["ON_ERROR"] = "abort"
+        return copy_options
