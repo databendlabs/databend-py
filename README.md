@@ -25,7 +25,7 @@ Use the next code to check connection:
 >     database="default",
 >     user="user",
 >     port="443",
->     password="password")
+>     password="password"),
 >     settings={"copy_purge":True,"force":True}
 > >>> print(client.execute("SELECT 1"))
 > ```
