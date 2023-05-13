@@ -250,7 +250,6 @@ class Client(object):
         start = time.time()
         stage_path = self.stage_csv_file(filename, data)
         copy_options = self.generate_copy_options()
-        print(copy_options)
         _, _ = self.execute(
             f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = CSV)\
              PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
