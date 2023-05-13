@@ -122,7 +122,7 @@ class Connection(object):
                                  verify=True)
         try:
             resp_dict = json.loads(response.content)
-            self.client_session = resp_dict["session"]
+            # self.client_session = resp_dict["session"]
             return resp_dict
         except Exception as err:
             log.logger.error(

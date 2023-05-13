@@ -127,11 +127,11 @@ class Client(object):
 
         batch_size = query.count(',') + 1
         if params is not None:
-            tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
-            filename = self.generate_csv(tuple_ls)
+            # tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
+            filename = self.generate_csv(params)
             csv_data = self.get_csv_data(filename)
             self.sync_csv_file_into_table(filename, csv_data, table_name)
-            insert_rows = len(tuple_ls)
+            insert_rows = len(params)
 
         return insert_rows
 
