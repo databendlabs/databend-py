@@ -18,3 +18,13 @@ class ServerException(Error):
 
     def __str__(self):
         return 'Code: {}\n{}'.format(self.code, self.message)
+
+
+class WarehouseTimeoutException(Error):
+    def __init__(self, message, code=None):
+        self.message = message
+        self.code = code
+        super(WarehouseTimeoutException, self).__init__(message)
+
+    def __str__(self):
+        return 'Provision warehouse timeout: \n{}'.format(self.message)

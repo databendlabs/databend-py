@@ -10,6 +10,8 @@ from mysql.connector.errors import Error
 from . import log
 from . import defines
 from .context import Context
+from databend_py.errors import WarehouseTimeoutException
+from databend_py.retry import retry
 
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-DATABEND-ROUTE': 'warehouse'}
 
@@ -88,6 +90,9 @@ class Connection(object):
             print(os.getenv("ADDITIONAL_HEADERS"))
             self.additional_headers = e.dict("ADDITIONAL_HEADERS")
 
+    def default_session(self):
+        return {"database": self.database}
+
     def make_headers(self):
         if "Authorization" not in self.additional_headers:
             return {
@@ -105,30 +110,39 @@ class Connection(object):
     def disconnect(self):
         self.client_session = dict()
 
+    @retry(times=5, exceptions=WarehouseTimeoutException)
+    def do_query(self, url, query_sql):
+        response = requests.post(url,
+                                 data=json.dumps(query_sql),
+                                 headers=self.make_headers(),
+                                 auth=HTTPBasicAuth(self.user, self.password),
+                                 verify=True)
+        resp_dict = json.loads(response.content)
+        if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
+            print("retry warehouse")
+            raise WarehouseTimeoutException
+
+        return resp_dict
+
     def query(self, statement):
         url = self.format_url()
         log.logger.debug(f"http sql: {statement}")
         query_sql = {'sql': statement, "string_fields": True}
         if self.client_session is not None and len(self.client_session) != 0:
             if "database" not in self.client_session:
-                self.client_session = {"database": self.database}
+                self.client_session = self.default_session()
             query_sql['session'] = self.client_session
         else:
-            self.client_session = {"database": self.database}
+            self.client_session = self.default_session()
             query_sql['session'] = self.client_session
         log.logger.debug(f"http headers {self.make_headers()}")
-        response = requests.post(url,
-                                 data=json.dumps(query_sql),
-                                 headers=self.make_headers(),
-                                 auth=HTTPBasicAuth(self.user, self.password),
-                                 verify=True)
         try:
-            resp_dict = json.loads(response.content)
-            self.client_session = resp_dict["session"]
+            resp_dict = self.do_query(url, query_sql)
+            self.client_session = resp_dict.get("session", self.default_session())
             return resp_dict
         except Exception as err:
             log.logger.error(
-                f"http error on {url}, SQL: {statement} content: {response.content} error msg:{str(err)}"
+                f"http error on {url}, SQL: {statement} error msg:{str(err)}"
             )
             raise
 
@@ -148,14 +162,13 @@ class Connection(object):
 
     # return a list of response util empty next_uri
     def query_with_session(self, statement):
-        current_session = self.client_session
         response_list = list()
         response = self.query(statement)
         log.logger.debug(f"response content: {response}")
         response_list.append(response)
         start_time = time.time()
         time_limit = 12
-        session = response['session']
+        session = response.get("session", self.default_session())
         if session:
             self.client_session = session
         while response['next_uri'] is not None:
@@ -163,7 +176,7 @@ class Connection(object):
             response = json.loads(resp.content)
             log.logger.debug(f"Sql in progress, fetch next_uri content: {response}")
             self.check_error(response)
-            session = response['session']
+            session = response.get("session", self.default_session())
             if session:
                 self.client_session = session
             response_list.append(response)
