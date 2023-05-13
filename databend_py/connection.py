@@ -122,6 +122,7 @@ class Connection(object):
                                  verify=True)
         try:
             resp_dict = json.loads(response.content)
+            # TODO(liyazhou): got KeyError here
             # self.client_session = resp_dict["session"]
             return resp_dict
         except Exception as err:
