@@ -110,9 +110,11 @@ class Connection(object):
         log.logger.debug(f"http sql: {statement}")
         query_sql = {'sql': statement, "string_fields": True}
         if self.client_session is not None and len(self.client_session) != 0:
+            if "database" not in self.client_session:
+                self.client_session = {"database": self.database}
             query_sql['session'] = self.client_session
         else:
-            self.client_session = {"db": self.database}
+            self.client_session = {"database": self.database}
             query_sql['session'] = self.client_session
         log.logger.debug(f"http headers {self.make_headers()}")
         response = requests.post(url,
