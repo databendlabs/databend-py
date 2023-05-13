@@ -119,7 +119,6 @@ class Connection(object):
                                  verify=True)
         resp_dict = json.loads(response.content)
         if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
-            print("retry warehouse")
             raise WarehouseTimeoutException
 
         return resp_dict
