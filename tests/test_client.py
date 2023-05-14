@@ -3,6 +3,14 @@ from unittest import TestCase
 import types, os
 
 
+def create_csv():
+    import csv
+    with open('upload.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([1, 'a'])
+        writer.writerow([1, 'b'])
+
+
 class DatabendPyTestCase(TestCase):
     def __init__(self, databend_url):
         super().__init__()
@@ -84,6 +92,16 @@ class DatabendPyTestCase(TestCase):
 
         self.assertEqual(list(result), [])
 
+    def test_upload(self):
+        create_csv()
+        client = Client.from_url(self.databend_url)
+        client.execute('DROP TABLE IF EXISTS test_upload')
+        client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
+        client.execute('DESC  test_upload')
+        client.upload("upload.csv", "default.test_upload")
+        _, upload_res = client.execute('select * from test_upload')
+        self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
+
     def tearDown(self):
         client = Client.from_url(self.databend_url)
         client.execute('DROP TABLE IF EXISTS test')
@@ -98,5 +116,6 @@ if __name__ == '__main__':
     dt.test_ordinary_query()
     # dt.test_batch_insert()
     dt.test_iter_query()
+    dt.test_upload()
     dt.tearDown()
     print("end test.....")

@@ -257,6 +257,11 @@ class Client(object):
         print("sync %s duration:%ss" % (filename, int(time.time() - start)))
         os.remove(filename)
 
+    # upload the file to database.table
+    def upload(self, filename, table_name):
+        csv_data = self.get_csv_data(filename)
+        self.sync_csv_file_into_table(filename, csv_data, table_name)
+
     def generate_copy_options(self):
         # copy options docs: https://databend.rs/doc/sql-commands/dml/dml-copy-into-table#copyoptions
         copy_options = {}
