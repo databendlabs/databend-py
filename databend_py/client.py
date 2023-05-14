@@ -130,7 +130,7 @@ class Client(object):
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
             filename = self.generate_csv(tuple_ls)
             csv_data = self.get_csv_data(filename)
-            self.sync_csv_file_into_table(filename, csv_data, table_name)
+            self.sync_csv_file_into_table(filename, csv_data, table_name, "CSV")
             insert_rows = len(tuple_ls)
 
         return insert_rows
@@ -246,21 +246,31 @@ class Client(object):
         resp.raise_for_status()
         return stage_path
 
-    def sync_csv_file_into_table(self, filename, data, table):
+    def sync_csv_file_into_table(self, filename, data, table, file_type):
         start = time.time()
         stage_path = self.stage_csv_file(filename, data)
         copy_options = self.generate_copy_options()
         _, _ = self.execute(
-            f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = CSV)\
+            f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = {file_type})\
              PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
               SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
         print("sync %s duration:%ss" % (filename, int(time.time() - start)))
         os.remove(filename)
 
-    # upload the file to database.table
-    def upload(self, filename, table_name):
-        csv_data = self.get_csv_data(filename)
-        self.sync_csv_file_into_table(filename, csv_data, table_name)
+    def upload(self, file_name, table_name, file_type=None):
+        """
+        upload the file to database.table according to the file
+        filename: the filename
+        table_name: the table which write into
+        file_type: the file type, default CSV
+        """
+        if not file_type:
+            if len(file_name.split(".")) > 0:
+                file_type = file_name.split(".")[1].upper()
+            else:
+                file_type = "CSV"
+        csv_data = self.get_csv_data(file_name)
+        self.sync_csv_file_into_table(file_name, csv_data, table_name, file_type)
 
     def generate_copy_options(self):
         # copy options docs: https://databend.rs/doc/sql-commands/dml/dml-copy-into-table#copyoptions
