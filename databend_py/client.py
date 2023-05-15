@@ -129,7 +129,6 @@ class Client(object):
         if params is not None:
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
             csv_data, filename = self.generate_csv_data(tuple_ls)
-            # csv_data = self.get_csv_data(filename)
             self.sync_csv_file_into_table(filename, csv_data, table_name, "CSV")
             insert_rows = len(tuple_ls)
 
@@ -224,14 +223,6 @@ class Client(object):
             kwargs['settings'] = settings
 
         return cls(host, **kwargs)
-
-    # def generate_csv(self, bindings):
-    #     file_name = f'{uuid.uuid4()}.csv'
-    #     with open(file_name, "w+") as csvfile:
-    #         spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-    #         spamwriter.writerows(bindings)
-    #
-    #     return file_name
 
     def generate_csv_data(self, bindings):
         file_name = f'{uuid.uuid4()}.csv'
