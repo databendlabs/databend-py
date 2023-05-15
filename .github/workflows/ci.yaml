@@ -16,8 +16,10 @@ jobs:
         env:
           QUERY_DEFAULT_USER: databend
           QUERY_DEFAULT_PASSWORD: databend
+          MINIO_ENABLED: true
         ports:
           - 8000:8000
+          - 9000:9000
     steps:
       - name: Checkout
         uses: actions/checkout@v2
