@@ -70,7 +70,7 @@ class DatabendPyTestCase(TestCase):
 
     def test_batch_insert(self):
         # with copy on purge
-        c = Client(host="localhost", port=8000, user="root", password="root", settings={"copy_purge": True})
+        c = Client.from_url(self.databend_url)
         c.execute('DROP TABLE IF EXISTS test')
         c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
         c.execute('DESC  test')
