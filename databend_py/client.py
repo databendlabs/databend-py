@@ -128,8 +128,7 @@ class Client(object):
         batch_size = query.count(',') + 1
         if params is not None:
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
-            filename = self.generate_csv(tuple_ls)
-            csv_data = self.get_csv_data(filename)
+            csv_data, filename = self.generate_csv_data(tuple_ls)
             self.sync_csv_file_into_table(filename, csv_data, table_name, "CSV")
             insert_rows = len(tuple_ls)
 
@@ -225,17 +224,17 @@ class Client(object):
 
         return cls(host, **kwargs)
 
-    def generate_csv(self, bindings):
+    def generate_csv_data(self, bindings):
         file_name = f'{uuid.uuid4()}.csv'
-        with open(file_name, "w+") as csvfile:
-            spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-            spamwriter.writerows(bindings)
+        buffer = io.StringIO()
+        csvwriter = csv.writer(buffer, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        csvwriter.writerows(bindings)
+        buffer.seek(0)  # Move the buffer's position to the beginning
+        return buffer.getvalue(), file_name
 
-        return file_name
-
-    def get_csv_data(self, filename):
-        with open(filename, "r") as csvfile:
-            return io.StringIO(csvfile.read())
+    def get_file_data(self, filename):
+        with open(filename, "r") as f:
+            return io.StringIO(f.read())
 
     def stage_csv_file(self, filename, data):
         stage_path = "@~/%s" % filename
@@ -251,11 +250,11 @@ class Client(object):
         stage_path = self.stage_csv_file(filename, data)
         copy_options = self.generate_copy_options()
         _, _ = self.execute(
-            f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = {file_type})\
+            f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n')\
              PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
               SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
         print("sync %s duration:%ss" % (filename, int(time.time() - start)))
-        os.remove(filename)
+        # os.remove(filename)
 
     def upload(self, file_name, table_name, file_type=None):
         """
@@ -269,8 +268,8 @@ class Client(object):
                 file_type = file_name.split(".")[1].upper()
             else:
                 file_type = "CSV"
-        csv_data = self.get_csv_data(file_name)
-        self.sync_csv_file_into_table(file_name, csv_data, table_name, file_type)
+        file_data = self.get_file_data(file_name)
+        self.sync_csv_file_into_table(file_name, file_data, table_name, file_type)
 
     def upload_to_stage(self, file_name):
         """

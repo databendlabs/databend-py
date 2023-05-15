@@ -70,7 +70,7 @@ class DatabendPyTestCase(TestCase):
 
     def test_batch_insert(self):
         # with copy on purge
-        c = Client(host="localhost", port=8000, user="root", password="root", settings={"copy_purge": True})
+        c = Client.from_url(self.databend_url)
         c.execute('DROP TABLE IF EXISTS test')
         c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
         c.execute('DESC  test')
@@ -109,6 +109,7 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(stage_path, "@~/upload.csv")
 
     def tearDown(self):
+        os.remove("upload.csv")
         client = Client.from_url(self.databend_url)
         client.execute('DROP TABLE IF EXISTS test')
         client.disconnect()
@@ -120,7 +121,7 @@ if __name__ == '__main__':
     dt = DatabendPyTestCase(databend_url=os.getenv("TEST_DATABEND_DSN"))
     dt.test_simple()
     dt.test_ordinary_query()
-    # dt.test_batch_insert()
+    dt.test_batch_insert()
     dt.test_iter_query()
     dt.test_upload()
     dt.tearDown()
