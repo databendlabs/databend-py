@@ -272,6 +272,21 @@ class Client(object):
         csv_data = self.get_csv_data(file_name)
         self.sync_csv_file_into_table(file_name, csv_data, table_name, file_type)
 
+    def upload_to_stage(self, file_name):
+        """
+        upload the file to user stage
+        :param file_name:
+        :return:
+        """
+        file_data = self.get_csv_data(file_name)
+        stage_path = "@~/%s" % file_name
+        _, row = self.execute('presign upload %s' % stage_path)
+        presigned_url = row[0][2]
+        headers = json.loads(row[0][1])
+        resp = requests.put(presigned_url, headers=headers, data=file_data)
+        resp.raise_for_status()
+        return stage_path
+
     def generate_copy_options(self):
         # copy options docs: https://databend.rs/doc/sql-commands/dml/dml-copy-into-table#copyoptions
         copy_options = {}

@@ -102,6 +102,12 @@ class DatabendPyTestCase(TestCase):
         _, upload_res = client.execute('select * from test_upload')
         self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
 
+    def test_upload_to_stage(self):
+        create_csv()
+        client = Client.from_url(self.databend_url)
+        stage_path = client.upload_to_stage("upload.csv")
+        self.assertEqual(stage_path, "@~/upload.csv")
+
     def tearDown(self):
         client = Client.from_url(self.databend_url)
         client.execute('DROP TABLE IF EXISTS test')
