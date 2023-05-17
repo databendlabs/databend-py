@@ -1,10 +1,16 @@
+import csv
+import json
+import os
 import re
+import requests
+import time
+import uuid
 from urllib.parse import urlparse, parse_qs, unquote
+
 from .connection import Connection
-from .util.helper import asbool, Helper
-from .util.escape import escape_params
 from .result import QueryResult
-import json, csv, uuid, requests, time, os
+from .util.escape import escape_params
+from .util.helper import asbool, Helper
 
 
 class Client(object):
@@ -128,9 +134,9 @@ class Client(object):
         batch_size = query.count(',') + 1
         if params is not None:
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
-            filename = self.generate_csv(tuple_ls)
+            filename = self._generate_csv(tuple_ls)
             with open(filename, "rb") as f:
-                self.sync_csv_file_into_table(f, filename, table_name, "CSV")
+                self._sync_csv_file_into_table(f, filename, table_name, "CSV")
             insert_rows = len(tuple_ls)
             os.remove(filename)
 
