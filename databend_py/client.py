@@ -5,7 +5,7 @@ from .connection import Connection
 from .util.helper import asbool, Helper
 from .util.escape import escape_params
 from .result import QueryResult
-import json, csv, uuid, requests, time
+import json, csv, uuid, requests, time, os
 
 
 class Client(object):
@@ -138,7 +138,7 @@ class Client(object):
         return insert_rows
 
     def _process_ordinary_query(self, query, params=None, with_column_types=False,
-                               query_id=None):
+                                query_id=None):
         if params is not None:
             query = self._substitute_params(
                 query, params, self.connection.context
@@ -242,17 +242,17 @@ class Client(object):
         start_presign_time = time.time()
         _, row = self.execute('presign upload %s' % stage_path)
         if self._debug:
-            print("upload: presign file:%s duration:%ss" % (filename, time.time() - start_presign_time))
+            print("upload: presign file:%s duration:%ss" % (file_name, time.time() - start_presign_time))
 
         presigned_url = row[0][2]
         headers = json.loads(row[0][1])
         start_upload_time = time.time()
         try:
-            resp = requests.put(presigned_url, headers=headers, data=data)
+            resp = requests.put(presigned_url, headers=headers, data=file_descriptor)
             resp.raise_for_status()
         finally:
             if self._debug:
-                print("upload: put file:%s duration:%ss" % (filename, time.time() - start_upload_time))
+                print("upload: put file:%s duration:%ss" % (file_name, time.time() - start_upload_time))
         return stage_path
 
     def _sync_csv_file_into_table(self, file_descriptor, file_name, table, file_type):
@@ -264,7 +264,7 @@ class Client(object):
              PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
               SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
         if self._debug:
-            print("upload: copy %s duration:%ss" % (filename, int(time.time() - start)))
+            print("upload: copy %s duration:%ss" % (file_name, int(time.time() - start)))
 
     def upload(self, file_descriptor, file_name, table_name, file_type=None):
         """
