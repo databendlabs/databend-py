@@ -20,12 +20,13 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(client.connection.host, another, msg=msg)
 
     def test_simple(self):
-        c = Client.from_url('https://app.databend.com:443?copy_purge=True')
+        c = Client.from_url('https://app.databend.com:443?secure=True&copy_purge=True&debug=True')
 
         self.assertHostsEqual(c, 'app.databend.com')
         self.assertEqual(c.connection.database, 'default')
         self.assertEqual(c.connection.user, 'root')
         self.assertEqual(c.connection.copy_purge, True)
+        self.assertEqual(c.settings.get("debug"), True)
 
         c = Client.from_url('https://host:443/db')
 
