@@ -132,6 +132,7 @@ class Client(object):
             with open(filename, "rb") as f:
                 self.sync_csv_file_into_table(f, filename, table_name, "CSV")
             insert_rows = len(tuple_ls)
+            os.remove(filename)
 
         return insert_rows
 
@@ -255,7 +256,6 @@ class Client(object):
              PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
               SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
         print("sync %s duration:%ss" % (file_name, int(time.time() - start)))
-        os.remove(file_name)
 
     def upload(self, file_descriptor, file_name, table_name, file_type=None):
         """
