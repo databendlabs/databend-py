@@ -5,7 +5,7 @@ from .connection import Connection
 from .util.helper import asbool, Helper
 from .util.escape import escape_params
 from .result import QueryResult
-import json, operator, csv, uuid, requests, time, os
+import json, csv, uuid, requests, time
 
 
 class Client(object):

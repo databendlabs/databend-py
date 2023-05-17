@@ -1,4 +1,3 @@
-import ast
 from .datetypes import DatabendDataType
 import re
 
