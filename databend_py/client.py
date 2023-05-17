@@ -128,8 +128,9 @@ class Client(object):
         batch_size = query.count(',') + 1
         if params is not None:
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
-            csv_data, filename = self.generate_csv_data(tuple_ls)
-            self.sync_csv_file_into_table(filename, csv_data, table_name, "CSV")
+            filename = self.generate_csv(tuple_ls)
+            with open(filename, "rb") as f:
+                self.sync_csv_file_into_table(f, filename, table_name, "CSV")
             insert_rows = len(tuple_ls)
 
         return insert_rows
@@ -224,39 +225,39 @@ class Client(object):
 
         return cls(host, **kwargs)
 
-    def generate_csv_data(self, bindings):
-        file_name = f'{uuid.uuid4()}.csv'
-        buffer = io.StringIO()
-        csvwriter = csv.writer(buffer, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        csvwriter.writerows(bindings)
-        buffer.seek(0)  # Move the buffer's position to the beginning
-        return buffer.getvalue(), file_name
+    def generate_csv(self, bindings):
+        file_name = f'/tmp/{uuid.uuid4()}.csv'
+        with open(file_name, "w+") as csvfile:
+            spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            spamwriter.writerows(bindings)
+
+        return file_name
 
     def get_file_data(self, filename):
         with open(filename, "r") as f:
             return io.StringIO(f.read())
 
-    def stage_csv_file(self, filename, data):
-        stage_path = "@~/%s" % filename
+    def stage_csv_file(self, file_descriptor, file_name):
+        stage_path = "@~/%s" % file_name
         _, row = self.execute('presign upload %s' % stage_path)
         presigned_url = row[0][2]
         headers = json.loads(row[0][1])
-        resp = requests.put(presigned_url, headers=headers, data=data)
+        resp = requests.put(presigned_url, headers=headers, data=file_descriptor)
         resp.raise_for_status()
         return stage_path
 
-    def sync_csv_file_into_table(self, filename, data, table, file_type):
+    def sync_csv_file_into_table(self, file_descriptor, file_name, table, file_type):
         start = time.time()
-        stage_path = self.stage_csv_file(filename, data)
+        stage_path = self.stage_csv_file(file_descriptor, file_name)
         copy_options = self.generate_copy_options()
         _, _ = self.execute(
             f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n')\
              PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
               SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
-        print("sync %s duration:%ss" % (filename, int(time.time() - start)))
-        # os.remove(filename)
+        print("sync %s duration:%ss" % (file_name, int(time.time() - start)))
+        os.remove(file_name)
 
-    def upload(self, file_name, table_name, file_type=None):
+    def upload(self, file_descriptor, file_name, table_name, file_type=None):
         """
         upload the file to database.table according to the file
         filename: the filename
@@ -268,21 +269,25 @@ class Client(object):
                 file_type = file_name.split(".")[1].upper()
             else:
                 file_type = "CSV"
-        file_data = self.get_file_data(file_name)
-        self.sync_csv_file_into_table(file_name, file_data, table_name, file_type)
+        self.sync_csv_file_into_table(file_descriptor, file_name, table_name, file_type)
 
-    def upload_to_stage(self, file_name):
+    def upload_to_stage(self, file_descriptor, stage_path=None, file_name=None):
         """
         upload the file to user stage
+        :param stage_path: target stage path
+        :param file_descriptor: open file handler
         :param file_name:
         :return:
         """
-        file_data = self.get_csv_data(file_name)
-        stage_path = "@~/%s" % file_name
+        if stage_path is None:
+            stage_path = "~"
+        if file_name is None:
+            file_name = f'{uuid.uuid4()}'
+        stage_path = f"@{stage_path}/{file_name}"
         _, row = self.execute('presign upload %s' % stage_path)
         presigned_url = row[0][2]
         headers = json.loads(row[0][1])
-        resp = requests.put(presigned_url, headers=headers, data=file_data)
+        resp = requests.put(presigned_url, headers=headers, data=file_descriptor)
         resp.raise_for_status()
         return stage_path
 

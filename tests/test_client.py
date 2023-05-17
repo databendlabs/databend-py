@@ -98,14 +98,16 @@ class DatabendPyTestCase(TestCase):
         client.execute('DROP TABLE IF EXISTS test_upload')
         client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
         client.execute('DESC  test_upload')
-        client.upload("upload.csv", "default.test_upload")
+        with open("upload.csv", "rb") as f:
+            client.upload(f, "upload.csv", "default.test_upload")
         _, upload_res = client.execute('select * from test_upload')
         self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
 
     def test_upload_to_stage(self):
         create_csv()
         client = Client.from_url(self.databend_url)
-        stage_path = client.upload_to_stage("upload.csv")
+        with open("upload.csv", "rb") as f:
+            stage_path = client.upload_to_stage(f, "upload.csv")
         self.assertEqual(stage_path, "@~/upload.csv")
 
     def tearDown(self):
