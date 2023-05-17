@@ -241,11 +241,22 @@ class Client(object):
 
     def stage_csv_file(self, filename, data):
         stage_path = "@~/%s" % filename
+
+        start_presign_time = time.time()
         _, row = self.execute('presign upload %s' % stage_path)
+        if self._debug:
+            print("upload: presign file:%s duration:%ss" % (filename, time.time() - start_presign_time))
+
         presigned_url = row[0][2]
         headers = json.loads(row[0][1])
-        resp = requests.put(presigned_url, headers=headers, data=data)
-        resp.raise_for_status()
+
+        start_upload_time = time.time()
+        try:
+            resp = requests.put(presigned_url, headers=headers, data=data)
+            resp.raise_for_status()
+        finally:
+            if self._debug:
+                print("upload: put file:%s duration:%ss" % (filename, time.time() - start_upload_time))
         return stage_path
 
     def _sync_csv_file_into_table(self, filename, data, table, file_type):
@@ -257,7 +268,7 @@ class Client(object):
              PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
               SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
         if self._debug:
-            print("sync %s duration:%ss" % (filename, int(time.time() - start)))
+            print("upload: copy %s duration:%ss" % (filename, int(time.time() - start)))
 
     def upload(self, file_name, table_name, file_type=None):
         """
