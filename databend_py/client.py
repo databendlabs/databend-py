@@ -5,7 +5,7 @@ from .connection import Connection
 from .util.helper import asbool, Helper
 from .util.escape import escape_params
 from .result import QueryResult
-import json, operator, csv, uuid, requests, time, os
+import json, csv, uuid, requests, time
 
 
 class Client(object):
@@ -19,6 +19,7 @@ class Client(object):
         self.connection = Connection(*args, **kwargs)
         self.query_result_cls = QueryResult
         self.helper = Helper
+        self._debug = asbool(self.settings.get('debug', False))
 
     def __enter__(self):
         return self
@@ -29,16 +30,16 @@ class Client(object):
     def disconnect_connection(self):
         self.connection.disconnect()
 
-    def data_generator(self, raw_data):
+    def _data_generator(self, raw_data):
         while raw_data['next_uri'] is not None:
             try:
-                raw_data = self.receive_data(raw_data['next_uri'])
+                raw_data = self._receive_data(raw_data['next_uri'])
                 yield raw_data
             except (Exception, KeyboardInterrupt):
                 self.disconnect()
                 raise
 
-    def receive_data(self, next_uri: str):
+    def _receive_data(self, next_uri: str):
         resp = self.connection.next_page(next_uri)
         raw_data = json.loads(resp.content)
         helper = self.helper()
@@ -46,22 +47,22 @@ class Client(object):
         helper.check_error()
         return raw_data
 
-    def receive_result(self, query, query_id=None, with_column_types=False):
+    def _receive_result(self, query, query_id=None, with_column_types=False):
         raw_data = self.connection.query(query)
         helper = self.helper()
         helper.response = raw_data
         helper.check_error()
-        gen = self.data_generator(raw_data)
+        gen = self._data_generator(raw_data)
         result = self.query_result_cls(
             gen, raw_data, with_column_types=with_column_types)
         return result.get_result()
 
-    def iter_receive_result(self, query, query_id=None, with_column_types=False):
+    def _iter_receive_result(self, query, query_id=None, with_column_types=False):
         raw_data = self.connection.query(query)
         helper = self.helper()
         helper.response = raw_data
         helper.check_error()
-        gen = self.data_generator(raw_data)
+        gen = self._data_generator(raw_data)
         result = self.query_result_cls(
             gen, raw_data, with_column_types=with_column_types)
         _, rows = result.get_result()
@@ -104,16 +105,16 @@ class Client(object):
         if is_insert:
             # remove the `\n` '\s' `\t` in the SQL
             query = " ".join([s.strip() for s in query.splitlines()]).strip()
-            rv = self.process_insert_query(query, params)
+            rv = self._process_insert_query(query, params)
             return [], rv
 
-        column_types, rv = self.process_ordinary_query(
+        column_types, rv = self._process_ordinary_query(
             query, params=params, with_column_types=with_column_types,
             query_id=query_id)
         return column_types, rv
 
     # params = [(1,),(2,)] or params = [(1,2),(2,3)]
-    def process_insert_query(self, query, params):
+    def _process_insert_query(self, query, params):
         insert_rows = 0
         if "values" in query:
             query = query.split("values")[0] + 'values'
@@ -136,26 +137,26 @@ class Client(object):
 
         return insert_rows
 
-    def process_ordinary_query(self, query, params=None, with_column_types=False,
+    def _process_ordinary_query(self, query, params=None, with_column_types=False,
                                query_id=None):
         if params is not None:
-            query = self.substitute_params(
+            query = self._substitute_params(
                 query, params, self.connection.context
             )
-        return self.receive_result(query, query_id=query_id, with_column_types=with_column_types, )
+        return self._receive_result(query, query_id=query_id, with_column_types=with_column_types, )
 
     def execute_iter(self, query, params=None, with_column_types=False,
                      query_id=None, settings=None):
         if params is not None:
-            query = self.substitute_params(
+            query = self._substitute_params(
                 query, params, self.connection.context
             )
-        return self.iter_receive_result(query, query_id=query_id, with_column_types=with_column_types)
+        return self._iter_receive_result(query, query_id=query_id, with_column_types=with_column_types)
 
-    def iter_process_ordinary_query(self, query, with_column_types=False, query_id=None):
-        return self.iter_receive_result(query, query_id=query_id, with_column_types=with_column_types)
+    def _iter_process_ordinary_query(self, query, with_column_types=False, query_id=None):
+        return self._iter_receive_result(query, query_id=query_id, with_column_types=with_column_types)
 
-    def substitute_params(self, query, params, context):
+    def _substitute_params(self, query, params, context):
         if not isinstance(params, dict):
             raise ValueError('Parameters are expected in dict form')
 
@@ -199,6 +200,8 @@ class Client(object):
             elif name == 'copy_purge':
                 kwargs[name] = asbool(value)
                 settings[name] = asbool(value)
+            elif name == 'debug':
+                settings[name] = asbool(value)
             elif name in timeouts:
                 kwargs[name] = float(value)
             else:
@@ -226,7 +229,7 @@ class Client(object):
 
         return cls(host, **kwargs)
 
-    def generate_csv(self, bindings):
+    def _generate_csv(self, bindings):
         file_name = f'/tmp/{uuid.uuid4()}.csv'
         with open(file_name, "w+") as csvfile:
             spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -234,28 +237,34 @@ class Client(object):
 
         return file_name
 
-    def get_file_data(self, filename):
-        with open(filename, "r") as f:
-            return io.StringIO(f.read())
-
     def stage_csv_file(self, file_descriptor, file_name):
         stage_path = "@~/%s" % file_name
+        start_presign_time = time.time()
         _, row = self.execute('presign upload %s' % stage_path)
+        if self._debug:
+            print("upload: presign file:%s duration:%ss" % (filename, time.time() - start_presign_time))
+
         presigned_url = row[0][2]
         headers = json.loads(row[0][1])
-        resp = requests.put(presigned_url, headers=headers, data=file_descriptor)
-        resp.raise_for_status()
+        start_upload_time = time.time()
+        try:
+            resp = requests.put(presigned_url, headers=headers, data=data)
+            resp.raise_for_status()
+        finally:
+            if self._debug:
+                print("upload: put file:%s duration:%ss" % (filename, time.time() - start_upload_time))
         return stage_path
 
-    def sync_csv_file_into_table(self, file_descriptor, file_name, table, file_type):
+    def _sync_csv_file_into_table(self, file_descriptor, file_name, table, file_type):
         start = time.time()
         stage_path = self.stage_csv_file(file_descriptor, file_name)
-        copy_options = self.generate_copy_options()
+        copy_options = self._generate_copy_options()
         _, _ = self.execute(
             f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n')\
              PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
               SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
-        print("sync %s duration:%ss" % (file_name, int(time.time() - start)))
+        if self._debug:
+            print("upload: copy %s duration:%ss" % (filename, int(time.time() - start)))
 
     def upload(self, file_descriptor, file_name, table_name, file_type=None):
         """
@@ -269,7 +278,7 @@ class Client(object):
                 file_type = file_name.split(".")[1].upper()
             else:
                 file_type = "CSV"
-        self.sync_csv_file_into_table(file_descriptor, file_name, table_name, file_type)
+        self._sync_csv_file_into_table(file_descriptor, file_name, table_name, file_type)
 
     def upload_to_stage(self, file_descriptor, stage_path=None, file_name=None):
         """
@@ -291,7 +300,7 @@ class Client(object):
         resp.raise_for_status()
         return stage_path
 
-    def generate_copy_options(self):
+    def _generate_copy_options(self):
         # copy options docs: https://databend.rs/doc/sql-commands/dml/dml-copy-into-table#copyoptions
         copy_options = {}
         if "copy_purge" in self.settings:
