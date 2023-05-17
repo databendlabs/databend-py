@@ -43,4 +43,5 @@ jobs:
         env:
             TEST_DATABEND_DSN: "http://databend:databend@localhost:8000/default"
         run: |
+          make lint
           make ci
