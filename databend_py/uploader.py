@@ -56,6 +56,7 @@ class DataUploader:
                 buf_writer = csv.writer(gzbuf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
                 buf_writer.writerows(data)
         else:
+            # In Python3 csv.writer expects a file-like object opened in text mode. In Python2, csv.writer expects a file-like object opened in binary mode.
             buf = io.StringIO()
             buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
             buf_writer.writerows(data)

@@ -135,6 +135,7 @@ if __name__ == '__main__':
     dt.test_ordinary_query()
     dt.test_batch_insert()
     dt.test_iter_query()
-    dt.test_upload()
+    dt.test_insert()
+    dt.test_insert_with_compress()
     dt.tearDown()
     print("end test.....")
