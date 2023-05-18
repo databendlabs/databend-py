@@ -47,6 +47,7 @@ class DataUploader:
             buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
             buf_writer.writerows(data)
             buf_size = buf.getbuffer().nbytes
+            data_len = len(data)
         else:
             raise Exception('data is not a list: %s' % type(data))
         start_time = time.time()
@@ -55,7 +56,7 @@ class DataUploader:
             resp.raise_for_status()
         finally:
             if self._debug:
-                print('upload:_upload_to_presigned_url bufsize=%d %s' % (buf_size, time.time() - start_time))
+                print('upload:_upload_to_presigned_url len=%d bufsize=%d %s' % (data_len, buf_size, time.time() - start_time))
 
     def _execute_copy(self, table_name, stage_path):
         start_time = time.time()

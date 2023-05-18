@@ -232,54 +232,20 @@ class Client(object):
 
         return cls(host, **kwargs)
 
-    def stage_csv_file(self, file_descriptor, file_name):
-        stage_path = "@~/%s" % file_name
-        start_presign_time = time.time()
-        _, row = self.execute('presign upload %s' % stage_path)
-        if self._debug:
-            print("upload: presign file:%s duration:%ss" % (file_name, time.time() - start_presign_time))
-
-        presigned_url = row[0][2]
-        headers = json.loads(row[0][1])
-        start_upload_time = time.time()
-        try:
-            resp = requests.put(presigned_url, headers=headers, data=file_descriptor)
-            resp.raise_for_status()
-        finally:
-            if self._debug:
-                print("upload: put file:%s duration:%ss" % (file_name, time.time() - start_upload_time))
-        return stage_path
-
-    def upload(self, file_descriptor, file_name, table_name, file_type=None):
+    def upload(self, table_name, data):
         """
         upload the file to database.table according to the file
-        filename: the filename
         table_name: the table which write into
-        file_type: the file type, default CSV
+        data: the data which write into, it's a list of tuple
         """
-        if not file_type:
-            if len(file_name.split(".")) > 0:
-                file_type = file_name.split(".")[1].upper()
-            else:
-                file_type = "CSV"
-        self._sync_csv_file_into_table(file_descriptor, file_name, table_name, file_type)
+        self._uploader.upload_to_table(table_name, data)
 
-    def upload_to_stage(self, file_descriptor, stage_path=None, file_name=None):
+    def upload_to_stage(self, stage_dir, file_name, data):
         """
         upload the file to user stage
-        :param stage_path: target stage path
-        :param file_descriptor: open file handler
-        :param file_name:
+        :param stage_dir: target stage directory
+        :param file_name: the target file name which placed into the stage_dir
+        :param data: the data value
         :return:
         """
-        if stage_path is None:
-            stage_path = "~"
-        if file_name is None:
-            file_name = f'{uuid.uuid4()}'
-        stage_path = f"@{stage_path}/{file_name}"
-        _, row = self.execute('presign upload %s' % stage_path)
-        presigned_url = row[0][2]
-        headers = json.loads(row[0][1])
-        resp = requests.put(presigned_url, headers=headers, data=file_descriptor)
-        resp.raise_for_status()
-        return stage_path
+        return self._uploader.upload_to_stage(stage_dir, file_name, data)
