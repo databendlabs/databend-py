@@ -3,12 +3,8 @@ from unittest import TestCase
 import types, os
 
 
-def create_csv():
-    import csv
-    with open('upload.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([1, 'a'])
-        writer.writerow([1, 'b'])
+def sample_insert_data():
+    return [(1, 'a'), (1, 'b')]
 
 
 class DatabendPyTestCase(TestCase):
@@ -70,49 +66,50 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(r, ([('1', 'UInt8')], [(1,)]))
 
     def test_batch_insert(self):
-        # with copy on purge
         c = Client.from_url(self.databend_url)
         c.execute('DROP TABLE IF EXISTS test')
         c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
         c.execute('DESC  test')
         _, r1 = c.execute('INSERT INTO test (x,y) VALUES (%,%)', [1, 'yy', 2, 'xx'])
-        # # insert_rows = 1
         self.assertEqual(r1, 2)
         _, ss = c.execute('select * from test')
         print(ss)
         self.assertEqual(ss, [(1, 'yy'), (2, 'xx')])
 
+    def test_batch_insert_with_tuple(self):
+        c = Client.from_url(self.databend_url)
+        c.execute('DROP TABLE IF EXISTS test')
+        c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
+        c.execute('DESC  test')
+        _, r1 = c.execute('INSERT INTO test (x,y) VALUES (%,%)', [(3, 'aa'), (4, 'bb')])
+        self.assertEqual(r1, 2)
+        _, ss = c.execute('select * from test')
+        self.assertEqual(ss, [(3, 'aa'), (4, 'bb')])
+
     def test_iter_query(self):
         client = Client.from_url(self.databend_url)
         result = client.execute_iter("select 1", with_column_types=False)
-
         self.assertIsInstance(result, types.GeneratorType)
         result_list = [i for i in result]
         print(result_list)
         self.assertEqual(result_list, [1])
-
         self.assertEqual(list(result), [])
 
     def test_upload(self):
-        create_csv()
         client = Client.from_url(self.databend_url)
         client.execute('DROP TABLE IF EXISTS test_upload')
         client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
-        client.execute('DESC  test_upload')
-        with open("upload.csv", "rb") as f:
-            client.upload(f, "upload.csv", "default.test_upload")
+        client.execute('DESC test_upload')
+        client.upload("default.test_upload", [(1, 'a'), (1, 'b'))])
         _, upload_res = client.execute('select * from test_upload')
         self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
 
     def test_upload_to_stage(self):
-        create_csv()
         client = Client.from_url(self.databend_url)
-        with open("upload.csv", "rb") as f:
-            stage_path = client.upload_to_stage(f, "upload.csv")
+        stage_path = client.upload_to_stage('@~', "upload.csv", [(1, 'a'), (1, 'b'))]])
         self.assertEqual(stage_path, "@~/upload.csv")
 
     def tearDown(self):
-        os.remove("upload.csv")
         client = Client.from_url(self.databend_url)
         client.execute('DROP TABLE IF EXISTS test')
         client.disconnect()
