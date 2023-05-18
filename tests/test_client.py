@@ -97,8 +97,18 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(result_list, [1])
         self.assertEqual(list(result), [])
 
-    def test_upload(self):
+    def test_insert(self):
         client = Client.from_url(self.databend_url)
+        client.execute('DROP TABLE IF EXISTS test_upload')
+        client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
+        client.execute('DESC test_upload')
+        client.insert("default", "test_upload", [(1, 'a'), (1, 'b')])
+        _, upload_res = client.execute('select * from test_upload')
+        self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
+
+    def test_insert_with_compress(self):
+        client = Client.from_url(self.databend_url+"?compress=True")
+        self.assertEqual(client._uploader._compress, True)
         client.execute('DROP TABLE IF EXISTS test_upload')
         client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
         client.execute('DESC test_upload')
