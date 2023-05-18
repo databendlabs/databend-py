@@ -234,6 +234,7 @@ class Client(object):
         table_name: the table which write into
         data: the data which write into, it's a list of tuple
         """
+        # TODO: escape the database & table name
         self._uploader.upload_to_table("%s.%s" % (database_name, table_name), data)
 
     def upload_to_stage(self, stage_dir, file_name, data):
