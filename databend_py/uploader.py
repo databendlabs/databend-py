@@ -51,6 +51,7 @@ class DataUploader:
 
     def _serialize_data(self, data, compress):
         # In Python3 csv.writer expects a file-like object opened in text mode. In Python2, csv.writer expects a file-like object opened in binary mode.
+        start_time = time.time()
         buf = io.StringIO()
         csvwriter = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
         csvwriter.writerows(data)
@@ -60,6 +61,8 @@ class DataUploader:
             with gzip.GzipFile(fileobj=buf, mode="wb") as gzwriter:
                 gzwriter.write(output.encode('utf-8'))
             output = buf.getvalue()
+        if self._debug:
+            print('upload:_serialize_data %s' % (time.time() - start_time))
         return output
 
     def _upload_to_presigned_url(self, presigned_url, headers, data):
@@ -81,8 +84,6 @@ class DataUploader:
     def _execute_copy(self, table_name, stage_path, file_type):
         start_time = time.time()
         sql = self._make_copy_statement(table_name, stage_path, file_type)
-        if self._debug:
-            print('upload:sql=%s' % sql)
         self.client.execute(sql)
         if self._debug:
             print('upload:_execute_copy table=%s %s' % (table_name, time.time() - start_time))
