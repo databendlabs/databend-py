@@ -32,25 +32,37 @@ class DataUploader:
         return stage_path
 
     def _execute_presign(self, stage_path):
+        start_time = time.time()
         _, row = self.client.execute('presign upload %s' % stage_path)
         presigned_url = row[0][2]
         headers = json.loads(row[0][1])
+        if self._debug:
+            print('upload:_execute_presign %s: %s' % (stage_path, time.time() - start_time))
         return presigned_url, headers
 
     def _upload_to_presigned_url(self, presigned_url, headers, data):
         # TODO: if data's type is bytes or File, then upload it directly
         if isinstance(data, list):
             buf = io.BytesIO()
-            w = csv.writer(f, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-            w.writerows(data)
+            buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            buf_writer.writerows(data)
+            buf_size = buf.getbuffer().nbytes
         else:
             raise Exception('data is not a list: %s' % type(data))
-        resp = requests.put(presigned_url, headers=headers, data=buf)
-        resp.raise_for_status()
+        start_time = time.time()
+        try:
+            resp = requests.put(presigned_url, headers=headers, data=buf)
+            resp.raise_for_status()
+        finally:
+            if self._debug:
+                print('upload:_upload_to_presigned_url bufsize=%d %s' % (buf_size, time.time() - start_time))
 
     def _execute_copy(self, table_name, stage_path):
+        start_time = time.time()
         sql = self._make_copy_statement(table_name, stage_path)
         self.client.execute(sql)
+        if self._debug:
+            print('upload:_execute_copy table=%s %s' % (table_name, time.time() - start_time))
 
     def _make_copy_statement(self, table_name, stage_path):
         copy_options = self._generate_copy_options()
