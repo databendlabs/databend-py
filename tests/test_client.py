@@ -81,7 +81,7 @@ class DatabendPyTestCase(TestCase):
         c.execute('DROP TABLE IF EXISTS test')
         c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
         c.execute('DESC  test')
-        _, r1 = c.execute('INSERT INTO test (x,y) VALUES (%,%)', [(3, 'aa'), (4, 'bb')])
+        _, r1 = c.execute('INSERT INTO test (x,y) VALUES', [(3, 'aa'), (4, 'bb')])
         self.assertEqual(r1, 2)
         _, ss = c.execute('select * from test')
         self.assertEqual(ss, [(3, 'aa'), (4, 'bb')])

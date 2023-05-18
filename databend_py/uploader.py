@@ -49,6 +49,7 @@ class DataUploader:
         if isinstance(data, list):
             buf = io.BytesIO()
             buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            print(data)
             buf_writer.writerows(data)
             buf_size = buf.getbuffer().nbytes
             data_len = len(data)
