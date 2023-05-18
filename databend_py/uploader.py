@@ -56,7 +56,7 @@ class DataUploader:
         buf_writer.writerows(data)
         output = buf.getvalue()
         if compress:
-            with gzip.GzipFile(fileobj=StringIO(), mode="wb") as gzwriter:
+            with gzip.GzipFile(fileobj=io.StringIO(), mode="wb") as gzwriter:
                 gzwriter.write(output.encode('utf-8'))
                 output = gzwriter.fileobj.getvalue()
         return output
