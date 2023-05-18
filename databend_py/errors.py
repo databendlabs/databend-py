@@ -30,7 +30,7 @@ class WarehouseTimeoutException(Error):
         return 'Provision warehouse timeout: {}'.format(self.message)
 
 
-class UnexpectedException(Error)
+class UnexpectedException(Error):
     def __init__(self, message):
         self.message = message
         super(UnexpectedException, self).__init__(message)
