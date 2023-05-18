@@ -15,6 +15,8 @@ class DataUploader:
         self._debug = debug
 
     def upload_to_table(self, table_name, data):
+        if len(data) == 0:
+            return
         stage_path = self._gen_stage_path(self.default_stage_dir)
         presigned_url, headers = self._execute_presign(stage_path)
         self._upload_to_presigned_url(presigned_url, headers, data)
