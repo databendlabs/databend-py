@@ -106,7 +106,7 @@ class DatabendPyTestCase(TestCase):
 
     def test_upload_to_stage(self):
         client = Client.from_url(self.databend_url)
-        stage_path = client.upload_to_stage('@~', "upload.csv", [(1, 'a'), (1, 'b'))]])
+        stage_path = client.upload_to_stage('@~', "upload.csv", [(1, 'a'), (1, 'b')])
         self.assertEqual(stage_path, "@~/upload.csv")
 
     def tearDown(self):
