@@ -227,13 +227,14 @@ class Client(object):
 
         return cls(host, **kwargs)
 
-    def upload(self, table_name, data):
+    def insert(self, database_name, table_name, data):
         """
-        upload the file to database.table according to the file
+        insert the data into database.table according to the file
+        database_name: the target database
         table_name: the table which write into
         data: the data which write into, it's a list of tuple
         """
-        self._uploader.upload_to_table(table_name, data)
+        self._uploader.upload_to_table("%s.%s" % (database_name, table_name), data)
 
     def upload_to_stage(self, stage_dir, file_name, data):
         """
