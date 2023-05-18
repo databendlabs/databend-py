@@ -108,6 +108,7 @@ class DatabendPyTestCase(TestCase):
 
     def test_insert_with_compress(self):
         client = Client.from_url(self.databend_url+"?compress=True&debug=True")
+        self.assertEqual(client._uploader._compress, True)
         client.execute('DROP TABLE IF EXISTS test_upload')
         client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
         client.execute('DESC test_upload')
