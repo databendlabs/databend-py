@@ -21,7 +21,7 @@ class Client(object):
         self.query_result_cls = QueryResult
         self.helper = Helper
         self._debug = asbool(self.settings.get('debug', False))
-        self._uploader = DataUploader(self, self.settings, debug=self._debug)
+        self._uploader = DataUploader(self, self.settings, debug=self._debug, compress=self.settings.get('compress', False))
 
     def __enter__(self):
         return self
@@ -199,6 +199,8 @@ class Client(object):
                 kwargs[name] = asbool(value)
                 settings[name] = asbool(value)
             elif name == 'debug':
+                settings[name] = asbool(value)
+            elif name == 'compress':
                 settings[name] = asbool(value)
             elif name in timeouts:
                 kwargs[name] = float(value)

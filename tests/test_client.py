@@ -36,6 +36,8 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(c.connection.schema, "http")
         c = Client.from_url("databend://root:root@localhost:8000/default?secure=false")
         self.assertEqual(c.connection.schema, "http")
+        c = Client.from_url("databend://root:root@localhost:8000/default?compress=True")
+        self.assertEqual(c._uploader._compress, True)
 
     def test_session_settings(self):
         session_settings = {"db": "database"}

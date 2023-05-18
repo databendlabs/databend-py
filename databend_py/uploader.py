@@ -7,11 +7,12 @@ import time
 
 
 class DataUploader:
-    def __init__(self, client, settings, default_stage_dir='@~', debug=False):
+    def __init__(self, client, settings, default_stage_dir='@~', debug=False, compress=False):
         # TODO: make it depends on Connection instead of Client
         self.client = client
         self.settings = settings
         self.default_stage_dir = default_stage_dir
+        self._compress = compress
         self._debug = debug
 
     def upload_to_table(self, table_name, data):
@@ -30,7 +31,8 @@ class DataUploader:
 
     def _gen_stage_path(self, stage_dir, stage_filename=None):
         if stage_filename is None:
-            stage_filename = '%s.csv' % uuid.uuid4()
+            suffix = '.csv.gz' if self._compress else '.csv'
+            stage_filename = '%s%s' % (uuid.uuid4(), suffix)
         if stage_filename.startswith('/'):
             stage_filename = stage_filename[1:]
         # TODO: escape the stage_path if it contains special characters
@@ -46,19 +48,28 @@ class DataUploader:
             print('upload:_execute_presign %s: %s' % (stage_path, time.time() - start_time))
         return presigned_url, headers
 
+    def _serialize_data(self, data, compress):
+        buf = io.StringIO()
+        if compress:
+            with gzip.GzipFile(fileobj=buf, mode="w") as gzbuf:
+                buf_writer = csv.writer(gzbuf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+                buf_writer.writerows(data)
+        else:
+            buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            buf_writer.writerows(data)
+        return buf.getvalue()
+
     def _upload_to_presigned_url(self, presigned_url, headers, data):
         # TODO: if data's type is bytes or File, then upload it directly
         if isinstance(data, list):
-            buf = io.StringIO()
-            buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-            buf_writer.writerows(data)
-            buf_size = len(buf.getvalue())
+            buf = self._serialize_data(data, self._compress)
+            buf_size = len(buf)
             data_len = len(data)
         else:
             raise Exception('data is not a list: %s' % type(data))
         start_time = time.time()
         try:
-            resp = requests.put(presigned_url, headers=headers, data=buf.getvalue())
+            resp = requests.put(presigned_url, headers=headers, data=buf)
             resp.raise_for_status()
         finally:
             if self._debug:
@@ -79,6 +90,6 @@ class DataUploader:
         copy_options["SIZE_LIMIT"] = self.settings.get("size_limit", 0) # TODO: is this correct to set size_limit = 100?
         copy_options["ON_ERROR"] = self.settings.get("on_error", "abort")
         return f"COPY INTO {table_name} FROM {stage_path} " \
-            f"FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n') " \
+            f"FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n' COMPRESSION = AUTO) " \
             f"PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']} " \
             f"SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}"
