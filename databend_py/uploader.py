@@ -70,32 +70,13 @@ class DataUploader:
             print('upload:_execute_copy table=%s %s' % (table_name, time.time() - start_time))
 
     def _make_copy_statement(self, table_name, stage_path, file_type):
-        copy_options = self._generate_copy_options()
+        # copy options docs: https://databend.rs/doc/sql-commands/dml/dml-copy-into-table#copyoptions
+        copy_options = {}
+        copy_options["PURGE"] = self.settings.get("copy_purge", False)
+        copy_options["FORCE"] = self.settings.get("force", False)
+        copy_options["SIZE_LIMIT"] = self.settings.get("size_limit", 0) # TODO: is this correct to set size_limit = 100?
+        copy_options["ON_ERROR"] = self.settings.get("on_error", "abort")
         return f"COPY INTO {table_name} FROM {stage_path} " \
             f"FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n') " \
             f"PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']} " \
             f"SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}"
-
-    def _generate_copy_options(self):
-        # copy options docs: https://databend.rs/doc/sql-commands/dml/dml-copy-into-table#copyoptions
-        copy_options = {}
-        if "copy_purge" in self.settings:
-            copy_options["PURGE"] = self.settings["copy_purge"]
-        else:
-            copy_options["PURGE"] = False
-
-        if "force" in self.settings:
-            copy_options["FORCE"] = self.settings["force"]
-        else:
-            copy_options["FORCE"] = False
-
-        if "size_limit" in self.settings:
-            copy_options["SIZE_LIMIT"] = self.settings["size_limit"]
-        else:
-            copy_options["SIZE_LIMIT"] = 0
-
-        if "on_error" in self.settings:
-            copy_options["ON_ERROR"] = self.settings["on_error"]
-        else:
-            copy_options["ON_ERROR"] = "abort"
-        return copy_options
