@@ -51,8 +51,8 @@ class DataUploader:
 
     def _serialize_data(self, data, compress):
         if compress:
-            buf = io.BytesIO()
-            with gzip.GzipFile(fileobj=buf, mode="w") as gzbuf:
+            buf = io.StringIO()
+            with gzip.GzipFile(fileobj=buf, mode="wb") as gzbuf:
                 buf_writer = csv.writer(gzbuf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
                 buf_writer.writerows(data)
         else:
