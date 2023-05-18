@@ -94,6 +94,6 @@ class DataUploader:
         copy_options["SIZE_LIMIT"] = self.settings.get("size_limit", 0) # TODO: is this correct to set size_limit = 100?
         copy_options["ON_ERROR"] = self.settings.get("on_error", "abort")
         return f"COPY INTO {table_name} FROM {stage_path} " \
-            f"FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n' COMPRESSION = AUTO) " \
+            f"FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\\r\\n' COMPRESSION = AUTO) " \
             f"PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']} " \
             f"SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}"
