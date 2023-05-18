@@ -1,5 +1,9 @@
 import requests
 import io
+import csv
+import uuid
+import json
+import time
 
 
 class DataUploader:
@@ -14,7 +18,7 @@ class DataUploader:
         stage_path = self._gen_stage_path(self.default_stage_dir)
         presigned_url, headers = self._execute_presign(stage_path)
         self._upload_to_presigned_url(presigned_url, headers, data)
-        self._execute_copy(table_name, stage_path)
+        self._execute_copy(table_name, stage_path, 'CSV')
 
     def upload_to_stage(self, stage_dir, filename, data):
         stage_path = self._gen_stage_path(stage_dir, filename)
@@ -58,14 +62,14 @@ class DataUploader:
             if self._debug:
                 print('upload:_upload_to_presigned_url len=%d bufsize=%d %s' % (data_len, buf_size, time.time() - start_time))
 
-    def _execute_copy(self, table_name, stage_path):
+    def _execute_copy(self, table_name, stage_path, file_type):
         start_time = time.time()
-        sql = self._make_copy_statement(table_name, stage_path)
+        sql = self._make_copy_statement(table_name, stage_path, file_type)
         self.client.execute(sql)
         if self._debug:
             print('upload:_execute_copy table=%s %s' % (table_name, time.time() - start_time))
 
-    def _make_copy_statement(self, table_name, stage_path):
+    def _make_copy_statement(self, table_name, stage_path, file_type):
         copy_options = self._generate_copy_options()
         return f"COPY INTO {table_name} FROM {stage_path} " \
             f"FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n') " \

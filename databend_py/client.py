@@ -1,10 +1,5 @@
-import csv
 import json
-import os
 import re
-import requests
-import time
-import uuid
 from urllib.parse import urlparse, parse_qs, unquote
 
 from .connection import Connection
