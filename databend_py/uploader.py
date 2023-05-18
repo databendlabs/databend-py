@@ -4,6 +4,7 @@ import csv
 import uuid
 import json
 import time
+import gzip
 
 
 class DataUploader:
