@@ -50,17 +50,16 @@ class DataUploader:
         return presigned_url, headers
 
     def _serialize_data(self, data, compress):
+        # In Python3 csv.writer expects a file-like object opened in text mode. In Python2, csv.writer expects a file-like object opened in binary mode.
+        buf = io.StringIO()
+        buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        buf_writer.writerows(data)
+        output = buf.getvalue()
         if compress:
-            buf = io.StringIO()
-            with gzip.GzipFile(fileobj=buf, mode="w") as gzbuf:
-                buf_writer = csv.writer(gzbuf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-                buf_writer.writerows(data)
-        else:
-            # In Python3 csv.writer expects a file-like object opened in text mode. In Python2, csv.writer expects a file-like object opened in binary mode.
-            buf = io.StringIO()
-            buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-            buf_writer.writerows(data)
-        return buf.getvalue()
+            with gzip.GzipFile(fileobj=StringIO(), mode="wb") as gzwriter:
+                gzwriter.write(output.encode('utf-8'))
+                output = gzwriter.fileobj.getvalue()
+        return output
 
     def _upload_to_presigned_url(self, presigned_url, headers, data):
         # TODO: if data's type is bytes or File, then upload it directly
