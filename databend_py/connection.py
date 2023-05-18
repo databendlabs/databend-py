@@ -9,16 +9,10 @@ import requests
 from . import log
 from . import defines
 from .context import Context
-from databend_py.errors import WarehouseTimeoutException, UnexpectedException
+from databend_py.errors import WarehouseTimeoutException, UnexpectedException, ServerException
 from databend_py.retry import retry
 
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-DATABEND-ROUTE': 'warehouse'}
-
-
-class Error:
-    def __init__(self, msg, errno):
-        self.msg = msg
-        self.errno = errno
 
 
 class ServerInfo(object):
@@ -58,8 +52,9 @@ def get_error(response):
         return None
 
     # Wrap errno into msg, for result check
-    return Error(msg=response['error']['message'],
-                 errno=response['error']['code'])
+    return ServerError(
+        response['error']['message'],
+        response['error']['code'])
 
 
 class Connection(object):
