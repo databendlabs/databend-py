@@ -52,7 +52,7 @@ def get_error(response):
         return None
 
     # Wrap errno into msg, for result check
-    return ServerError(
+    return ServerException(
         response['error']['message'],
         response['error']['code'])
 
