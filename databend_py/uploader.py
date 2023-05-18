@@ -56,9 +56,10 @@ class DataUploader:
         csvwriter.writerows(data)
         output = buf.getvalue()
         if compress:
-            with gzip.GzipFile(fileobj=io.BytesIO(), mode="wb") as gzwriter:
+            buf = io.BytesIO()
+            with gzip.GzipFile(fileobj=buf, mode="wb") as gzwriter:
                 gzwriter.write(output.encode('utf-8'))
-                output = gzwriter.fileobj.getvalue()
+            output = buf.getvalue()
         return output
 
     def _upload_to_presigned_url(self, presigned_url, headers, data):
