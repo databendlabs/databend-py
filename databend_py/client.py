@@ -8,6 +8,7 @@ import uuid
 from urllib.parse import urlparse, parse_qs, unquote
 
 from .connection import Connection
+from .uploader import DataUploader
 from .result import QueryResult
 from .util.escape import escape_params
 from .util.helper import asbool, Helper
@@ -25,6 +26,7 @@ class Client(object):
         self.query_result_cls = QueryResult
         self.helper = Helper
         self._debug = asbool(self.settings.get('debug', False))
+        self._uploader = DataUploader(self, self.settings, debug=self._debug)
 
     def __enter__(self):
         return self
@@ -134,12 +136,8 @@ class Client(object):
         batch_size = query.count(',') + 1
         if params is not None:
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
-            filename = self._generate_csv(tuple_ls)
-            with open(filename, "rb") as f:
-                self._sync_csv_file_into_table(f, filename, table_name, "CSV")
             insert_rows = len(tuple_ls)
-            os.remove(filename)
-
+            self._uploader.upload_to_table(table_name, tuple_ls)
         return insert_rows
 
     def _process_ordinary_query(self, query, params=None, with_column_types=False,
@@ -234,14 +232,6 @@ class Client(object):
 
         return cls(host, **kwargs)
 
-    def _generate_csv(self, bindings):
-        file_name = f'/tmp/{uuid.uuid4()}.csv'
-        with open(file_name, "w+") as csvfile:
-            spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-            spamwriter.writerows(bindings)
-
-        return file_name
-
     def stage_csv_file(self, file_descriptor, file_name):
         stage_path = "@~/%s" % file_name
         start_presign_time = time.time()
@@ -259,17 +249,6 @@ class Client(object):
             if self._debug:
                 print("upload: put file:%s duration:%ss" % (file_name, time.time() - start_upload_time))
         return stage_path
-
-    def _sync_csv_file_into_table(self, file_descriptor, file_name, table, file_type):
-        start = time.time()
-        stage_path = self.stage_csv_file(file_descriptor, file_name)
-        copy_options = self._generate_copy_options()
-        _, _ = self.execute(
-            f"COPY INTO {table} FROM {stage_path} FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\r\n')\
-             PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']}\
-              SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}")
-        if self._debug:
-            print("upload: copy %s duration:%ss" % (file_name, int(time.time() - start)))
 
     def upload(self, file_descriptor, file_name, table_name, file_type=None):
         """
@@ -304,27 +283,3 @@ class Client(object):
         resp = requests.put(presigned_url, headers=headers, data=file_descriptor)
         resp.raise_for_status()
         return stage_path
-
-    def _generate_copy_options(self):
-        # copy options docs: https://databend.rs/doc/sql-commands/dml/dml-copy-into-table#copyoptions
-        copy_options = {}
-        if "copy_purge" in self.settings:
-            copy_options["PURGE"] = self.settings["copy_purge"]
-        else:
-            copy_options["PURGE"] = False
-
-        if "force" in self.settings:
-            copy_options["FORCE"] = self.settings["force"]
-        else:
-            copy_options["FORCE"] = False
-
-        if "size_limit" in self.settings:
-            copy_options["SIZE_LIMIT"] = self.settings["size_limit"]
-        else:
-            copy_options["SIZE_LIMIT"] = 0
-        if "on_error" in self.settings:
-            copy_options["ON_ERROR"] = self.settings["on_error"]
-
-        else:
-            copy_options["ON_ERROR"] = "abort"
-        return copy_options
