@@ -10,9 +10,9 @@ class DataUploader:
     def __init__(self, client, settings, default_stage_dir='@~', debug=False):
         # TODO: make it depends on Connection instead of Client
         self.client = client
-        self.debug = debug
         self.settings = settings
         self.default_stage_dir = default_stage_dir
+        self._debug = debug
 
     def upload_to_table(self, table_name, data):
         stage_path = self._gen_stage_path(self.default_stage_dir)
