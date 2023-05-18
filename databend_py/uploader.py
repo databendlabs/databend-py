@@ -50,12 +50,13 @@ class DataUploader:
         return presigned_url, headers
 
     def _serialize_data(self, data, compress):
-        buf = io.BytesIO()
         if compress:
+            buf = io.BytesIO()
             with gzip.GzipFile(fileobj=buf, mode="w") as gzbuf:
                 buf_writer = csv.writer(gzbuf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
                 buf_writer.writerows(data)
         else:
+            buf = io.StringIO()
             buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
             buf_writer.writerows(data)
         return buf.getvalue()
