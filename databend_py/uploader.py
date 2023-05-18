@@ -47,11 +47,11 @@ class DataUploader:
     def _upload_to_presigned_url(self, presigned_url, headers, data):
         # TODO: if data's type is bytes or File, then upload it directly
         if isinstance(data, list):
-            buf = io.BytesIO()
+            buf = io.StringIO()
             buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
             print(data)
             buf_writer.writerows(data)
-            buf_size = buf.getbuffer().nbytes
+            buf_size = len(buf.getvalue())
             data_len = len(data)
         else:
             raise Exception('data is not a list: %s' % type(data))
