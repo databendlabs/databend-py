@@ -9,7 +9,7 @@ import requests
 from . import log
 from . import defines
 from .context import Context
-from databend_py.errors import WarehouseTimeoutException
+from databend_py.errors import WarehouseTimeoutException, UnexpectedException
 from databend_py.retry import retry
 
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-DATABEND-ROUTE': 'warehouse'}
@@ -122,10 +122,12 @@ class Connection(object):
                                  headers=self.make_headers(),
                                  auth=HTTPBasicAuth(self.user, self.password),
                                  verify=True)
-        resp_dict = json.loads(response.content)
+        try:
+            resp_dict = json.loads(response.content)
+        except json.decoder.JSONDecodeError:
+            raise UnexpectedException("failed to parse response: %s" % response.content)
         if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
             raise WarehouseTimeoutException
-
         return resp_dict
 
     def query(self, statement):
