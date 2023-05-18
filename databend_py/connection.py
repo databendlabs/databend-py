@@ -6,7 +6,6 @@ from requests.auth import HTTPBasicAuth
 
 import environs
 import requests
-from mysql.connector.errors import Error
 from . import log
 from . import defines
 from .context import Context
@@ -14,6 +13,12 @@ from databend_py.errors import WarehouseTimeoutException
 from databend_py.retry import retry
 
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-DATABEND-ROUTE': 'warehouse'}
+
+
+class Error:
+    def __init__(self, msg, errno):
+        self.msg = msg
+        self.errno = errno
 
 
 class ServerInfo(object):
