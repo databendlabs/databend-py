@@ -52,8 +52,8 @@ class DataUploader:
     def _serialize_data(self, data, compress):
         # In Python3 csv.writer expects a file-like object opened in text mode. In Python2, csv.writer expects a file-like object opened in binary mode.
         buf = io.StringIO()
-        buf_writer = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        buf_writer.writerows(data)
+        csvwriter = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        csvwriter.writerows(data)
         output = buf.getvalue()
         if compress:
             with gzip.GzipFile(fileobj=io.BytesIO(), mode="wb") as gzwriter:
@@ -80,6 +80,8 @@ class DataUploader:
     def _execute_copy(self, table_name, stage_path, file_type):
         start_time = time.time()
         sql = self._make_copy_statement(table_name, stage_path, file_type)
+        if self._debug:
+            print('upload:sql=%s' % sql)
         self.client.execute(sql)
         if self._debug:
             print('upload:_execute_copy table=%s %s' % (table_name, time.time() - start_time))
