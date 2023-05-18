@@ -82,6 +82,7 @@ class Connection(object):
         self.additional_headers = dict()
         self.query_option = None
         self.context = Context()
+        self.requests_session = requests.Session()
         self.schema = 'http'
         if self.secure:
             self.schema = 'https'
@@ -112,7 +113,7 @@ class Connection(object):
 
     @retry(times=5, exceptions=WarehouseTimeoutException)
     def do_query(self, url, query_sql):
-        response = requests.post(url,
+        response = self.requests_session.post(url,
                                  data=json.dumps(query_sql),
                                  headers=self.make_headers(),
                                  auth=HTTPBasicAuth(self.user, self.password),
@@ -159,7 +160,7 @@ class Connection(object):
 
     def next_page(self, next_uri):
         url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
-        return requests.get(url=url, headers=self.make_headers())
+        return self.requests_session.get(url=url, headers=self.make_headers())
 
     # return a list of response util empty next_uri
     def query_with_session(self, statement):
