@@ -17,7 +17,7 @@ class ServerException(Error):
         super(ServerException, self).__init__(message)
 
     def __str__(self):
-        return 'Code: {}\n{}'.format(self.code, self.message)
+        return 'Code: {} {}'.format(self.code, self.message)
 
 
 class WarehouseTimeoutException(Error):
@@ -27,4 +27,14 @@ class WarehouseTimeoutException(Error):
         super(WarehouseTimeoutException, self).__init__(message)
 
     def __str__(self):
-        return 'Provision warehouse timeout: \n{}'.format(self.message)
+        return 'Provision warehouse timeout: {}'.format(self.message)
+
+
+class UnexpectedException(Error):
+    def __init__(self, message):
+        self.message = message
+        super(UnexpectedException, self).__init__(message)
+
+    def __str__(self):
+        message = ' ' + self.message if self.message is not None else ''
+        return 'Unexpected: {}'.format(message)

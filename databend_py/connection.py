@@ -6,11 +6,10 @@ from requests.auth import HTTPBasicAuth
 
 import environs
 import requests
-from mysql.connector.errors import Error
 from . import log
 from . import defines
 from .context import Context
-from databend_py.errors import WarehouseTimeoutException
+from databend_py.errors import WarehouseTimeoutException, UnexpectedException, ServerException
 from databend_py.retry import retry
 
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-DATABEND-ROUTE': 'warehouse'}
@@ -53,8 +52,9 @@ def get_error(response):
         return None
 
     # Wrap errno into msg, for result check
-    return Error(msg=response['error']['message'],
-                 errno=response['error']['code'])
+    return ServerException(
+        response['error']['message'],
+        response['error']['code'])
 
 
 class Connection(object):
@@ -82,6 +82,7 @@ class Connection(object):
         self.additional_headers = dict()
         self.query_option = None
         self.context = Context()
+        self.requests_session = requests.Session()
         self.schema = 'http'
         if self.secure:
             self.schema = 'https'
@@ -112,15 +113,17 @@ class Connection(object):
 
     @retry(times=5, exceptions=WarehouseTimeoutException)
     def do_query(self, url, query_sql):
-        response = requests.post(url,
+        response = self.requests_session.post(url,
                                  data=json.dumps(query_sql),
                                  headers=self.make_headers(),
                                  auth=HTTPBasicAuth(self.user, self.password),
                                  verify=True)
-        resp_dict = json.loads(response.content)
+        try:
+            resp_dict = json.loads(response.content)
+        except json.decoder.JSONDecodeError:
+            raise UnexpectedException("failed to parse response: %s" % response.content)
         if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
             raise WarehouseTimeoutException
-
         return resp_dict
 
     def query(self, statement):
@@ -157,7 +160,7 @@ class Connection(object):
 
     def next_page(self, next_uri):
         url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
-        return requests.get(url=url, headers=self.make_headers())
+        return self.requests_session.get(url=url, headers=self.make_headers())
 
     # return a list of response util empty next_uri
     def query_with_session(self, statement):
