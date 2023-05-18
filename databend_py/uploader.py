@@ -58,7 +58,7 @@ class DataUploader:
             raise Exception('data is not a list: %s' % type(data))
         start_time = time.time()
         try:
-            resp = requests.put(presigned_url, headers=headers, data=buf)
+            resp = requests.put(presigned_url, headers=headers, data=buf.getvalue())
             resp.raise_for_status()
         finally:
             if self._debug:
