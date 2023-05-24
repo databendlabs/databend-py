@@ -1,5 +1,4 @@
 import os
-import re
 from codecs import open
 
 from setuptools import setup, find_packages
@@ -8,17 +7,10 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 
 def read_version():
-    regexp = re.compile(r'^VERSION\W*=\W*\(([^\(\)]*)\)')
-    init_py = os.path.join(here, 'databend_py', '__init__.py')
-    with open(init_py, encoding='utf-8') as f:
-        for line in f:
-            match = regexp.match(line)
-            if match is not None:
-                return match.group(1).replace(', ', '.')
-        else:
-            raise RuntimeError(
-                'Cannot find version in databend_py/__init__.py'
-            )
+    version_py = os.path.join(here, 'databend_py', 'VERSION')
+    with open(version_py, encoding='utf-8') as f:
+        first_line = f.readline()
+        return first_line.strip()
 
 
 github_url = 'https://github.com/databendcloud/databend-py'
