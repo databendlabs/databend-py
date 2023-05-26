@@ -20,28 +20,33 @@ class QueryResult(object):
 
         super(QueryResult, self).__init__()
 
-    def store(self, raw_data: dict):
+    def store_data(self, raw_data: dict):
         fields = raw_data.get("schema")
         column_name_ls = []
         datas = raw_data.get("data")
         for field in fields:
-            inner_type = self.extract_type(field["type"])
-            column_type = (field['name'], inner_type)
-            self.column_type_dic[field['name']] = inner_type
             column_name_ls.append(field['name'])
-            self.columns_with_types.append(column_type)
 
         for data in datas:
             self.column_data_dict_list.append(dict(zip(column_name_ls, data)))
+
+    def store_columns(self, raw_data: dict):
+        fields = raw_data.get("schema")
+        for field in fields:
+            inner_type = self.extract_type(field["type"])
+            column_type = (field['name'], inner_type)
+            self.column_type_dic[field['name']] = inner_type
+            self.columns_with_types.append(column_type)
 
     def get_result(self):
         """
         :return: stored query result.
         """
         data = []
-        self.store(self.first_data)
+        self.store_data(self.first_data)
+        self.store_columns(self.first_data)
         for d in self.data_generator:
-            self.store(d)
+            self.store_data(d)
 
         for read_data in self.column_data_dict_list:
             tmp_list = []
