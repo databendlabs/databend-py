@@ -39,6 +39,10 @@ class DatabendPyTestCase(TestCase):
         c = Client.from_url("databend://root:root@localhost:8000/default?compress=True")
         self.assertEqual(c._uploader._compress, True)
 
+        self.assertEqual(c.connection.persist_cookies, False)
+        c = Client.from_url('https://root:root@localhost:8000?persist_cookies=True')
+        self.assertEqual(c.connection.persist_cookies, True)
+
     def test_session_settings(self):
         session_settings = {"db": "database"}
         c = Client(host="localhost", port=8000, user="root", password="root", session_settings={"db": "database"})
@@ -126,6 +130,18 @@ class DatabendPyTestCase(TestCase):
         client.execute('DROP TABLE IF EXISTS test')
         client.disconnect()
 
+    def test_cookies(self):
+        client = Client.from_url(self.databend_url)
+        client.execute("select 1")
+        self.assertIsNone(client.connection.cookies)
+
+        if "?" in self.databend_url:
+            url_with_persist_cookies = f"{self.databend_url}&persist_cookies=true"
+        else:
+            url_with_persist_cookies = f"{self.databend_url}?persist_cookies=true"
+        client = Client.from_url(url_with_persist_cookies)
+        client.execute("select 1")
+        self.assertIsNotNone(client.connection.cookies)
 
 if __name__ == '__main__':
     print("start test......")
@@ -137,5 +153,6 @@ if __name__ == '__main__':
     dt.test_iter_query()
     dt.test_insert()
     dt.test_insert_with_compress()
+    dt.test_cookies()
     dt.tearDown()
     print("end test.....")

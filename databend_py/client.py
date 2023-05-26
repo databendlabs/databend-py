@@ -204,6 +204,8 @@ class Client(object):
                 settings[name] = asbool(value)
             elif name in timeouts:
                 kwargs[name] = float(value)
+            elif name == 'persist_cookies':
+                kwargs[name] = asbool(value)
             else:
                 settings[name] = value  # settings={'copy_purge':False}
         secure = kwargs.get("secure", False)
