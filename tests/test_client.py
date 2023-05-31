@@ -107,7 +107,7 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
 
     def test_insert_with_compress(self):
-        client = Client.from_url(self.databend_url+"?compress=True&debug=True")
+        client = Client.from_url(self.databend_url + "?compress=True&debug=True")
         self.assertEqual(client._uploader._compress, True)
         client.execute('DROP TABLE IF EXISTS test_upload')
         client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
@@ -120,6 +120,12 @@ class DatabendPyTestCase(TestCase):
         client = Client.from_url(self.databend_url)
         stage_path = client.upload_to_stage('@~', "upload.csv", [(1, 'a'), (1, 'b')])
         self.assertEqual(stage_path, "@~/upload.csv")
+
+    def test_select_over_paging(self):
+        expected_column = [('number', 'UInt64')]
+        client = Client.from_url(self.databend_url)
+        columns, data = client.execute('SELECT * FROM numbers(10001)', with_column_types=True)
+        self.assertEqual(expected_column, columns)
 
     def tearDown(self):
         client = Client.from_url(self.databend_url)
