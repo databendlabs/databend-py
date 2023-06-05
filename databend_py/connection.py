@@ -69,7 +69,7 @@ class Connection(object):
     #   'database': 'default'
     # }
     def __init__(self, host, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
-                 database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None):
+                 database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None, persist_cookies=False):
         self.host = host
         self.port = port
         self.user = user
@@ -90,6 +90,8 @@ class Connection(object):
         if os.getenv("ADDITIONAL_HEADERS") is not None:
             print(os.getenv("ADDITIONAL_HEADERS"))
             self.additional_headers = e.dict("ADDITIONAL_HEADERS")
+        self.persist_cookies = persist_cookies
+        self.cookies = None
 
     def default_session(self):
         return {"database": self.database}
@@ -124,6 +126,8 @@ class Connection(object):
             raise UnexpectedException("failed to parse response: %s" % response.content)
         if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
             raise WarehouseTimeoutException
+        if self.persist_cookies:
+            self.cookies = response.cookies
         return resp_dict
 
     def query(self, statement):
@@ -160,7 +164,7 @@ class Connection(object):
 
     def next_page(self, next_uri):
         url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
-        return self.requests_session.get(url=url, headers=self.make_headers())
+        return self.requests_session.get(url=url, headers=self.make_headers(), cookies=self.cookies)
 
     # return a list of response util empty next_uri
     def query_with_session(self, statement):
