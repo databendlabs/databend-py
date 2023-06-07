@@ -246,7 +246,7 @@ class Client(object):
         upload the file to user stage
         :param stage_dir: target stage directory
         :param file_name: the target file name which placed into the stage_dir
-        :param data: the data value
+        :param data: the data value or file handler
         :return:
         """
         return self._uploader.upload_to_stage(stage_dir, file_name, data)

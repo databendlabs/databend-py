@@ -66,20 +66,26 @@ class DataUploader:
         return output
 
     def _upload_to_presigned_url(self, presigned_url, headers, data):
-        # TODO: if data's type is bytes or File, then upload it directly
-        if isinstance(data, list):
+        # Check if data is bytes or File
+        if isinstance(data, (bytes, io.IOBase)):
+            data = data.read()  # Read the data from the buffer
+            buf = data
+            buf_size = len(buf)
+            data_len = 1
+        elif isinstance(data, list):
             buf = self._serialize_data(data, self._compress)
             buf_size = len(buf)
             data_len = len(data)
         else:
-            raise Exception('data is not a list: %s' % type(data))
+            raise Exception('data is not bytes, File, or a list: %s' % type(data))
         start_time = time.time()
         try:
             resp = requests.put(presigned_url, headers=headers, data=buf)
             resp.raise_for_status()
         finally:
             if self._debug:
-                print('upload:_upload_to_presigned_url len=%d bufsize=%d %s' % (data_len, buf_size, time.time() - start_time))
+                print('upload:_upload_to_presigned_url len=%d bufsize=%d %s' % (
+                    data_len, buf_size, time.time() - start_time))
 
     def _execute_copy(self, table_name, stage_path, file_type):
         start_time = time.time()
@@ -93,9 +99,10 @@ class DataUploader:
         copy_options = {}
         copy_options["PURGE"] = self.settings.get("copy_purge", False)
         copy_options["FORCE"] = self.settings.get("force", False)
-        copy_options["SIZE_LIMIT"] = self.settings.get("size_limit", 0) # TODO: is this correct to set size_limit = 100?
+        copy_options["SIZE_LIMIT"] = self.settings.get("size_limit",
+                                                       0)  # TODO: is this correct to set size_limit = 100?
         copy_options["ON_ERROR"] = self.settings.get("on_error", "abort")
         return f"COPY INTO {table_name} FROM {stage_path} " \
-            f"FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\\r\\n' COMPRESSION = AUTO) " \
-            f"PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']} " \
-            f"SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}"
+               f"FILE_FORMAT = (type = {file_type} RECORD_DELIMITER = '\\r\\n' COMPRESSION = AUTO) " \
+               f"PURGE = {copy_options['PURGE']} FORCE = {copy_options['FORCE']} " \
+               f"SIZE_LIMIT={copy_options['SIZE_LIMIT']} ON_ERROR = {copy_options['ON_ERROR']}"
