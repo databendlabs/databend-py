@@ -27,7 +27,7 @@ jobs:
       - name: Determine Version Change
         id: version_changed
         run: |
-          git diff --name-only HEAD~1 HEAD | grep VERSION
+          cat databend_py/VERSION
 
       - name: Release Package and Tag
         if: steps.version_changed.outputs.stdout
