@@ -30,7 +30,6 @@ jobs:
           cat databend_py/VERSION
 
       - name: Release Package and Tag
-        if: steps.version_changed.outputs.stdout
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
