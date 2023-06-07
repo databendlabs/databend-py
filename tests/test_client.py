@@ -7,6 +7,14 @@ def sample_insert_data():
     return [(1, 'a'), (1, 'b')]
 
 
+def create_csv():
+    import csv
+    with open('upload.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([1, 'a'])
+        writer.writerow([1, 'b'])
+
+
 class DatabendPyTestCase(TestCase):
     def __init__(self, databend_url):
         super().__init__()
@@ -125,6 +133,16 @@ class DatabendPyTestCase(TestCase):
         stage_path = client.upload_to_stage('@~', "upload.csv", [(1, 'a'), (1, 'b')])
         self.assertEqual(stage_path, "@~/upload.csv")
 
+    def test_upload_file_to_stage(self):
+        create_csv()
+        client = Client.from_url(self.databend_url)
+        with open("upload.csv", "rb") as f:
+            stage_path = client.upload_to_stage('@~', "upload.csv", f)
+            print(stage_path)
+            self.assertEqual(stage_path, "@~/upload.csv")
+
+        os.remove("upload.csv")
+
     def test_select_over_paging(self):
         expected_column = [('number', 'UInt64')]
         client = Client.from_url(self.databend_url)
@@ -149,6 +167,7 @@ class DatabendPyTestCase(TestCase):
         client.execute("select 1")
         # self.assertIsNotNone(client.connection.cookies)
 
+
 if __name__ == '__main__':
     print("start test......")
     # os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8000"
@@ -159,6 +178,8 @@ if __name__ == '__main__':
     dt.test_iter_query()
     dt.test_insert()
     dt.test_insert_with_compress()
+    dt.test_upload_to_stage()
+    dt.test_upload_file_to_stage()
     dt.test_cookies()
     dt.tearDown()
     print("end test.....")
