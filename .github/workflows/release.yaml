@@ -35,7 +35,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
           python setup.py sdist bdist_wheel
-          twine upload -u ${TWINE_USERNAME} -p ${TWINE_PASSWORD} dist/*
+          twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }} dist/*
           git config user.name "hantmac"
           git config user.email "hantmac@outlook.com"
           git tag -a "v${{ steps.version_changed.outputs.stdout }}" -m "Release Version ${{ steps.version_changed.outputs.stdout }}"
