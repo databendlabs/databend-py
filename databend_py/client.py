@@ -1,5 +1,4 @@
 import json
-import re
 from urllib.parse import urlparse, parse_qs, unquote
 
 from .connection import Connection

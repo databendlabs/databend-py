@@ -14,6 +14,7 @@ def upload_to_stage():
     client = Client.from_url("http://root:root@localhost:8000")
     # upload [(1, 'a'), (1, 'b')] as csv to stage ~
     stage_path = client.upload_to_stage('@~', "upload.csv", [(1, 'a'), (1, 'b')])
+    print(stage_path)
     # stage_path is @~/upload.csv
 
 
