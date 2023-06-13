@@ -39,6 +39,5 @@ jobs:
 #          twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }} dist/*
           git config user.name "hantmac"
           git config user.email "hantmac@outlook.com"
-          cat $VERSION
           git tag -a "v$VERSION" -m "Release Version $VERSION"
           git push origin "v$VERSION"
