@@ -9,4 +9,4 @@ def replace_into():
     client.replace("default", "test_replace", ['x'], [(1, 'a'), (2, 'b')])
     client.replace("default", "test_replace", ['x'], [(1, 'c'), (2, 'd')])
     _, upload_res = client.execute('select * from test_replace')
-    # upload_res is [(1, 'c\r'), (1, 'd\r')]
+    # upload_res is [(1, 'c\r'), (2, 'd\r')]
