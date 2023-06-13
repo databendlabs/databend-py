@@ -27,7 +27,7 @@ jobs:
       - name: Determine Version Change
         id: version_changed
         run: |
-          cat databend_py/VERSION
+          export VERSION=$(cat databend_py/VERSION)
 
       - name: Release Package and Tag
         env:
@@ -40,6 +40,5 @@ jobs:
           twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }} dist/*
           git config user.name "hantmac"
           git config user.email "hantmac@outlook.com"
-          cat ${{ steps.version_changed }}
-          git tag -a "v${{ steps.version_changed.outputs }}" -m "Release Version ${{ steps.version_changed.outputs }}"
-          git push origin "v${{ steps.version_changed.outputs.stdout }}"
+          git tag -a "v$VERSION" -m "Release Version $VERSION"
+          git push origin "v$VERSION"
