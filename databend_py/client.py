@@ -21,7 +21,8 @@ class Client(object):
         self.query_result_cls = QueryResult
         self.helper = Helper
         self._debug = asbool(self.settings.get('debug', False))
-        self._uploader = DataUploader(self, self.settings, debug=self._debug, compress=self.settings.get('compress', False))
+        self._uploader = DataUploader(self, self.connection, self.settings, debug=self._debug,
+                                      compress=self.settings.get('compress', False))
 
     def __enter__(self):
         return self
@@ -122,17 +123,14 @@ class Client(object):
             query = query.split("values")[0] + 'values'
         elif "VALUES" in query:
             query = query.split("VALUES")[0] + 'VALUES'
-        insert_re = re.compile("(?i)^INSERT INTO\s+\x60?([\w.^\(]+)\x60?\s*(\([^\)]*\))?")
-        match = insert_re.match(query.strip())
-        if len(match.group().split(' ')) < 2:
-            raise Exception("Not standard insert statement")
-        table_name = match[1]
-
+        if len(query.split(' ')) < 3:
+            raise Exception("Not standard insert/replace statement")
+        table_name = query.split(' ')[2]
         batch_size = query.count(',') + 1
         if params is not None:
             tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
             insert_rows = len(tuple_ls)
-            self._uploader.upload_to_table(table_name, tuple_ls)
+            self._uploader.upload_to_table_by_copy(table_name, tuple_ls)
         return insert_rows
 
     def _process_ordinary_query(self, query, params=None, with_column_types=False,
@@ -239,7 +237,17 @@ class Client(object):
         data: the data which write into, it's a list of tuple
         """
         # TODO: escape the database & table name
-        self._uploader.upload_to_table("%s.%s" % (database_name, table_name), data)
+        self._uploader.upload_to_table_by_copy("%s.%s" % (database_name, table_name), data)
+
+    def replace(self, database_name, table_name, conflict_keys, data):
+        """
+        replace the data into database.table according to the file
+        database_name: the target database
+        table_name: the table which write into
+        conflict_keys: the key that use to replace into
+        data: the data which write into, it's a list of tuple
+        """
+        self._uploader.upload_to_table_with_attachment("%s.%s" % (database_name, table_name), conflict_keys, data)
 
     def upload_to_stage(self, stage_dir, file_name, data):
         """
