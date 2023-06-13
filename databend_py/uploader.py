@@ -26,7 +26,7 @@ class DataUploader:
         self._upload_to_presigned_url(presigned_url, headers, data)
         self._execute_copy(table_name, stage_path, 'CSV')
 
-    def upload_to_table_with_attachment(self, table_name, conflict_keys, data):
+    def replace_into_table(self, table_name, conflict_keys, data):
         """
         :param table_name: table name
         :param conflict_keys: if use replace, the conflict_keys can't be None

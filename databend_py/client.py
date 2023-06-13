@@ -246,7 +246,7 @@ class Client(object):
         conflict_keys: the key that use to replace into
         data: the data which write into, it's a list of tuple
         """
-        self._uploader.upload_to_table_with_attachment("%s.%s" % (database_name, table_name), conflict_keys, data)
+        self._uploader.replace_into_table("%s.%s" % (database_name, table_name), conflict_keys, data)
 
     def upload_to_stage(self, stage_dir, file_name, data):
         """
