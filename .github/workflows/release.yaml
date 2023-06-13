@@ -33,10 +33,10 @@ jobs:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
-          python setup.py sdist bdist_wheel
+#          python setup.py sdist bdist_wheel
           echo "show user name:"
           echo ${{ secrets.TWINE_USERNAME }}
-          twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }} dist/*
+#          twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }} dist/*
           git config user.name "hantmac"
           git config user.email "hantmac@outlook.com"
           cat $VERSION
