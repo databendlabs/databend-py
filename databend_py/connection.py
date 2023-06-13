@@ -69,7 +69,8 @@ class Connection(object):
     #   'database': 'default'
     # }
     def __init__(self, host, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
-                 database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None, persist_cookies=False):
+                 database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None,
+                 persist_cookies=False):
         self.host = host
         self.port = port
         self.user = user
@@ -116,16 +117,18 @@ class Connection(object):
     @retry(times=5, exceptions=WarehouseTimeoutException)
     def do_query(self, url, query_sql):
         response = self.requests_session.post(url,
-                                 data=json.dumps(query_sql),
-                                 headers=self.make_headers(),
-                                 auth=HTTPBasicAuth(self.user, self.password),
-                                 verify=True)
+                                              data=json.dumps(query_sql),
+                                              headers=self.make_headers(),
+                                              auth=HTTPBasicAuth(self.user, self.password),
+                                              verify=True)
         try:
             resp_dict = json.loads(response.content)
         except json.decoder.JSONDecodeError:
             raise UnexpectedException("failed to parse response: %s" % response.content)
         if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
             raise WarehouseTimeoutException
+        if resp_dict and resp_dict.get('error'):
+            raise UnexpectedException("failed to query: %s" % response.content)
         if self.persist_cookies:
             self.cookies = response.cookies
         return resp_dict

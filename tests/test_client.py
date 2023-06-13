@@ -118,6 +118,16 @@ class DatabendPyTestCase(TestCase):
         _, upload_res = client.execute('select * from test_upload')
         self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
 
+    def test_replace(self):
+        client = Client.from_url(self.databend_url)
+        client.execute('DROP TABLE IF EXISTS test_replace')
+        client.execute('CREATE TABLE if not exists test_replace (x Int32,y VARCHAR)')
+        client.execute('DESC test_replace')
+        client.replace("default", "test_replace", ['x'], [(1, 'a'), (2, 'b')])
+        client.replace("default", "test_replace", ['x'], [(1, 'c'), (2, 'd')])
+        _, upload_res = client.execute('select * from test_replace')
+        self.assertEqual(upload_res, [(1, 'c\r'), (2, 'd\r')])
+
     def test_insert_with_compress(self):
         client = Client.from_url(self.databend_url + "?compress=True&debug=True")
         self.assertEqual(client._uploader._compress, True)
@@ -177,6 +187,7 @@ if __name__ == '__main__':
     dt.test_batch_insert()
     dt.test_iter_query()
     dt.test_insert()
+    dt.test_replace()
     dt.test_insert_with_compress()
     dt.test_upload_to_stage()
     dt.test_upload_file_to_stage()

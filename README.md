@@ -53,6 +53,8 @@ Pure Client example:
 > 1
 > ```
 
+More usages examples find [here](./examples).
+
 # Features
 
 -   Basic SQL.
