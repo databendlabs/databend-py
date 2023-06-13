@@ -33,6 +33,7 @@ jobs:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
+          export VERSION=$(cat databend_py/VERSION)
           git config user.name "hantmac"
           git config user.email "hantmac@outlook.com"
           git tag -a "v$VERSION" -m "Release Version $VERSION"
