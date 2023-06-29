@@ -9,7 +9,7 @@ class QueryResult(object):
 
     def __init__(
             self, data_generator, first_data,
-            with_column_types=False):
+            with_column_types=False, null_to_none=False):
         self.data_generator = data_generator
         self.with_column_types = with_column_types
         self.first_data = first_data
@@ -17,6 +17,7 @@ class QueryResult(object):
         self.columns_with_types = []
         self.column_type_dic = {}
         self.type_convert = DatabendDataType.type_convert_fn
+        self.null_to_none = null_to_none
 
         super(QueryResult, self).__init__()
 
@@ -52,7 +53,10 @@ class QueryResult(object):
             tmp_list = []
             for c, d in read_data.items():
                 if d == 'NULL':
-                    tmp_list.append(d)
+                    if self.null_to_none:
+                        tmp_list.append(None)
+                    else:
+                        tmp_list.append(d)
                 else:
                     tmp_list.append(self.type_convert(self.column_type_dic[c])(d))
             data.append(tuple(tmp_list))
