@@ -16,6 +16,7 @@ class Client(object):
 
     def __init__(self, *args, **kwargs):
         self.settings = (kwargs.pop('settings', None) or {}).copy()
+        self.result_config = (kwargs.pop('result_config', None) or {}).copy()
         self.connection = Connection(*args, **kwargs)
         self.query_result_cls = QueryResult
         self.helper = Helper
@@ -56,7 +57,7 @@ class Client(object):
         helper.check_error()
         gen = self._data_generator(raw_data)
         result = self.query_result_cls(
-            gen, raw_data, with_column_types=with_column_types)
+            gen, raw_data, with_column_types=with_column_types, **self.result_config)
         return result.get_result()
 
     def _iter_receive_result(self, query, query_id=None, with_column_types=False):
@@ -66,7 +67,7 @@ class Client(object):
         helper.check_error()
         gen = self._data_generator(raw_data)
         result = self.query_result_cls(
-            gen, raw_data, with_column_types=with_column_types)
+            gen, raw_data, with_column_types=with_column_types, **self.result_config)
         _, rows = result.get_result()
         for row in rows:
             for r in row:
@@ -175,6 +176,7 @@ class Client(object):
         parsed_url = urlparse(url)
 
         settings = {}
+        result_config = {}
         kwargs = {}
         for name, value in parse_qs(parsed_url.query).items():
             if not value or not len(value):
@@ -203,6 +205,8 @@ class Client(object):
                 kwargs[name] = float(value)
             elif name == 'persist_cookies':
                 kwargs[name] = asbool(value)
+            elif name == 'null_to_none':
+                result_config[name] = asbool(value)
             else:
                 settings[name] = value  # settings={'copy_purge':False}
         secure = kwargs.get("secure", False)
@@ -225,6 +229,9 @@ class Client(object):
 
         if settings:
             kwargs['settings'] = settings
+        
+        if result_config:
+            kwargs['result_config'] = result_config
 
         return cls(host, **kwargs)
 
