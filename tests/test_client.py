@@ -176,6 +176,19 @@ class DatabendPyTestCase(TestCase):
         client = Client.from_url(url_with_persist_cookies)
         client.execute("select 1")
         # self.assertIsNotNone(client.connection.cookies)
+    
+    def test_null_to_none(self):
+        client = Client.from_url(self.databend_url)
+        _, data = client.execute("select NULL as test")
+        self.assertEqual(data[0][0], "NULL")
+
+        if "?" in self.databend_url:
+            url_with_null_to_none = f"{self.databend_url}&null_to_none=true"
+        else:
+            url_with_null_to_none = f"{self.databend_url}?null_to_none=true"
+        client = Client.from_url(url_with_null_to_none)
+        _, data = client.execute("select NULL as test")
+        self.assertIsNone(data[0][0])
 
 
 if __name__ == '__main__':
@@ -192,5 +205,6 @@ if __name__ == '__main__':
     dt.test_upload_to_stage()
     dt.test_upload_file_to_stage()
     dt.test_cookies()
+    dt.test_null_to_none()
     dt.tearDown()
     print("end test.....")
