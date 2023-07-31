@@ -11,8 +11,10 @@ from . import defines
 from .context import Context
 from databend_py.errors import WarehouseTimeoutException, UnexpectedException, ServerException
 from databend_py.retry import retry
+from databend_py.sdk_info import sdk_info
 
-headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-DATABEND-ROUTE': 'warehouse'}
+headers = {'Content-Type': 'application/json', 'User-Agent': sdk_info(), 'Accept': 'application/json',
+           'X-DATABEND-ROUTE': 'warehouse'}
 
 
 class ServerInfo(object):
