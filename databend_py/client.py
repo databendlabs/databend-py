@@ -1,4 +1,5 @@
 import json
+import re
 from urllib.parse import urlparse, parse_qs, unquote
 
 from .connection import Connection
@@ -127,8 +128,11 @@ class Client(object):
             raise Exception("Not standard insert/replace statement")
         table_name = query.split(' ')[2]
         batch_size = query.count(',') + 1
-        if params is not None:
-            tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
+        if params is not None and len(params) > 0:
+            if isinstance(params[0], tuple):
+                tuple_ls = params
+            else:
+                tuple_ls = [tuple(params[i:i + batch_size]) for i in range(0, len(params), batch_size)]
             insert_rows = len(tuple_ls)
             self._uploader.upload_to_table_by_copy(table_name, tuple_ls)
         return insert_rows
@@ -229,7 +233,6 @@ class Client(object):
 
         if settings:
             kwargs['settings'] = settings
-        
         if result_config:
             kwargs['result_config'] = result_config
 
