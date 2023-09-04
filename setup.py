@@ -21,6 +21,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='databend-py',
     version=read_version(),
+    include_package_data=True,
 
     description='Python driver with native interface for Databend',
     long_description=long_description,
