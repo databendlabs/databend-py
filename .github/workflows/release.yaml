@@ -42,4 +42,3 @@ jobs:
           echo "show user name:"
           echo ${{ secrets.TWINE_USERNAME }}
           twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }} dist/*
-          
