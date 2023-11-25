@@ -176,7 +176,7 @@ class DatabendPyTestCase(TestCase):
         client = Client.from_url(url_with_persist_cookies)
         client.execute("select 1")
         # self.assertIsNotNone(client.connection.cookies)
-    
+
     def test_null_to_none(self):
         client = Client.from_url(self.databend_url)
         _, data = client.execute("select NULL as test")
@@ -189,6 +189,15 @@ class DatabendPyTestCase(TestCase):
         client = Client.from_url(url_with_null_to_none)
         _, data = client.execute("select NULL as test")
         self.assertIsNone(data[0][0])
+
+    def test_set_query_id_header(self):
+        client = Client.from_url(self.databend_url)
+        client.execute("select 1")
+        print(client.connection.additional_headers)
+        execute_query_id1 = client.connection.additional_headers["X-Databend-Query-Id"]
+        self.assertEqual("X-Databend-Query-Id" in client.connection.additional_headers, True)
+        client.execute("select 2")
+        self.assertNotEqual(execute_query_id1, client.connection.additional_headers["X-Databend-Query-Id"])
 
 
 if __name__ == '__main__':

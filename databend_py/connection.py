@@ -15,6 +15,8 @@ from databend_py.sdk_info import sdk_info
 
 headers = {'Content-Type': 'application/json', 'User-Agent': sdk_info(), 'Accept': 'application/json',
            'X-DATABEND-ROUTE': 'warehouse'}
+XDatabendQueryIDHeader = "X-Databend-Query-Id"
+QueryID = "id"
 
 
 class ServerInfo(object):
@@ -146,10 +148,13 @@ class Connection(object):
         else:
             self.client_session = self.default_session()
             query_sql['session'] = self.client_session
+        if XDatabendQueryIDHeader in self.additional_headers:
+            del self.additional_headers[XDatabendQueryIDHeader]
         log.logger.debug(f"http headers {self.make_headers()}")
         try:
             resp_dict = self.do_query(url, query_sql)
             self.client_session = resp_dict.get("session", self.default_session())
+            self.additional_headers = {XDatabendQueryIDHeader: resp_dict.get(QueryID)}
             return resp_dict
         except Exception as err:
             log.logger.error(
