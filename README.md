@@ -40,7 +40,9 @@ Pure Client example:
 > >>> client = Client.from_url('http://root@localhost:8000/db?secure=False&copy_purge=True')
 > >>>
 > >>> client.execute('SHOW TABLES')
-> [('test',)]
+> [[], [('test',)]]
+> >>> client.execute("show tables",with_column_types=True)
+> [[('Tables_in_default', 'String')], [('test',)]] # [[(column_name, column_type)], [(data,)]]
 > >>> client.execute('DROP TABLE IF EXISTS test')
 > []
 > >>> client.execute('CREATE TABLE test (x Int32)')
