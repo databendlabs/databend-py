@@ -1,3 +1,5 @@
+import time
+
 from databend_py.errors import WarehouseTimeoutException
 
 
@@ -22,6 +24,7 @@ def retry(times, exceptions):
                         'Exception thrown when attempting to run %s, attempt '
                         '%d of %d' % (func, attempt, times)
                     )
+                    time.sleep(attempt)
                     attempt += 1
             return func(*args, **kwargs)
 
