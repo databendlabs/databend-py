@@ -24,7 +24,7 @@ def retry(times, exceptions):
                         'Exception thrown when attempting to run %s, attempt '
                         '%d of %d' % (func, attempt, times)
                     )
-                    time.sleep(attempt)
+                    time.sleep(attempt * 5)
                     attempt += 1
             return func(*args, **kwargs)
 
