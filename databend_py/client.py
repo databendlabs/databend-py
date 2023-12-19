@@ -187,6 +187,7 @@ class Client(object):
 
             timeouts = {
                 'connect_timeout',
+                'read_timeout',
                 'send_receive_timeout',
                 'sync_request_timeout'
             }
