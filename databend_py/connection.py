@@ -73,7 +73,7 @@ class Connection(object):
     #   'database': 'default'
     # }
     def __init__(self, host, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
-                 connect_timeout=defines.DEFAULT_CONNECT_TIMEOUT,
+                 connect_timeout=defines.DEFAULT_CONNECT_TIMEOUT, read_timeout=defines.DEFAULT_READ_TIMEOUT,
                  database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None,
                  persist_cookies=False):
         self.host = host
@@ -82,6 +82,7 @@ class Connection(object):
         self.password = password
         self.database = database
         self.connect_timeout = connect_timeout
+        self.read_timeout = read_timeout
         self.secure = secure
         self.copy_purge = copy_purge
         self.session_max_idle_time = defines.DEFAULT_SESSION_IDLE_TIME
@@ -126,7 +127,7 @@ class Connection(object):
                                               data=json.dumps(query_sql),
                                               headers=self.make_headers(),
                                               auth=HTTPBasicAuth(self.user, self.password),
-                                              timeout=self.connect_timeout,
+                                              timeout=(self.connect_timeout, self.read_timeout),
                                               verify=True)
         try:
             resp_dict = json.loads(response.content)
