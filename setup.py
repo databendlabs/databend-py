@@ -29,7 +29,6 @@ setup(
     python_requires=">=3.4, <4",
     install_requires=[
         "pytz",
-        "mysql.connector",
         "environs",
         "requests",
         "databend-driver>=0.11.3",
