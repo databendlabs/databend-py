@@ -54,8 +54,10 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(c.connection.read_timeout, 30)
 
         self.assertEqual(c.connection.persist_cookies, False)
-        c = Client.from_url('https://root:root@localhost:8000?persist_cookies=True')
+        c = Client.from_url('https://root:root@localhost:8000?persist_cookies=True&tenant=tn1&warehouse=wh1')
         self.assertEqual(c.connection.persist_cookies, True)
+        self.assertEqual(c.connection.tenant, "tn1")
+        self.assertEqual(c.connection.warehouse, "wh1")
 
     def test_session_settings(self):
         session_settings = {"db": "database"}

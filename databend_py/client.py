@@ -196,6 +196,10 @@ class Client(object):
 
             if name == 'client_name':
                 kwargs[name] = value
+            elif name == 'tenant':
+                kwargs[name] = value
+            elif name == 'warehouse':
+                kwargs[name] = value
             elif name == 'secure':
                 kwargs[name] = asbool(value)
             elif name == 'copy_purge':
