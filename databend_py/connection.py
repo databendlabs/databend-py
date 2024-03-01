@@ -13,9 +13,9 @@ from databend_py.errors import WarehouseTimeoutException, UnexpectedException, S
 from databend_py.retry import retry
 from databend_py.sdk_info import sdk_info
 
-headers = {'Content-Type': 'application/json', 'User-Agent': sdk_info(), 'Accept': 'application/json',
-           'X-DATABEND-ROUTE': 'warehouse'}
 XDatabendQueryIDHeader = "X-Databend-Query-Id"
+XDatabendTenantHeader = "X-DATABEND-TENANT"
+XDatabendWarehouseHeader = "X-DATABEND-WAREHOUSE"
 QueryID = "id"
 
 
@@ -72,12 +72,14 @@ class Connection(object):
     #   'port': 3307,
     #   'database': 'default'
     # }
-    def __init__(self, host, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
+    def __init__(self, host, tenant, warehouse, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
                  connect_timeout=defines.DEFAULT_CONNECT_TIMEOUT, read_timeout=defines.DEFAULT_READ_TIMEOUT,
                  database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None,
                  persist_cookies=False):
         self.host = host
         self.port = port
+        self.tenant = tenant
+        self.warehouse = warehouse
         self.user = user
         self.password = password
         self.database = database
@@ -105,6 +107,9 @@ class Connection(object):
         return {"database": self.database}
 
     def make_headers(self):
+        headers = {'Content-Type': 'application/json', 'User-Agent': sdk_info(), 'Accept': 'application/json',
+                   'X-DATABEND-ROUTE': 'warehouse', XDatabendTenantHeader: self.tenant,
+                   XDatabendWarehouseHeader: self.warehouse}
         if "Authorization" not in self.additional_headers:
             return {
                 **headers, **self.additional_headers,
