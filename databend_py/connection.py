@@ -72,7 +72,8 @@ class Connection(object):
     #   'port': 3307,
     #   'database': 'default'
     # }
-    def __init__(self, host, tenant, warehouse, port=None, user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
+    def __init__(self, host, tenant=None, warehouse=None, port=None, user=defines.DEFAULT_USER,
+                 password=defines.DEFAULT_PASSWORD,
                  connect_timeout=defines.DEFAULT_CONNECT_TIMEOUT, read_timeout=defines.DEFAULT_READ_TIMEOUT,
                  database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None,
                  persist_cookies=False):

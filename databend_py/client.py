@@ -196,9 +196,9 @@ class Client(object):
 
             if name == 'client_name':
                 kwargs[name] = value
-            if name == 'tenant':
+            elif name == 'tenant':
                 kwargs[name] = value
-            if name == 'warehouse':
+            elif name == 'warehouse':
                 kwargs[name] = value
             elif name == 'secure':
                 kwargs[name] = asbool(value)
