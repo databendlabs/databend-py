@@ -271,3 +271,21 @@ class Client(object):
         :return:
         """
         return self._uploader.upload_to_stage(stage_dir, file_name, data)
+
+    def begin(self):
+        try:
+            self.execute("BEGIN")
+        except Exception as e:
+            raise e
+
+    def commit(self):
+        try:
+            self.execute("COMMIT")
+        except Exception as e:
+            raise e
+
+    def rollback(self):
+        try:
+            self.execute("ROLLBACK")
+        except Exception as e:
+            raise e
