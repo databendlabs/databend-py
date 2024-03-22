@@ -165,7 +165,7 @@ class Connection(object):
             resp_dict = self.do_query(url, query_sql)
             self.client_session = resp_dict.get("session", self.default_session())
             self.additional_headers = {XDatabendQueryIDHeader: resp_dict.get(QueryID)}
-            return resp_dict
+            return self.wait_until_has_schema(resp_dict)
         except Exception as err:
             log.logger.error(
                 f"http error on {url}, SQL: {statement} error msg:{str(err)}"
@@ -181,6 +181,19 @@ class Connection(object):
 
     def reset_session(self):
         self.client_session = dict()
+
+    def wait_until_has_schema(self, raw_data_dict):
+        resp_schema = raw_data_dict.get("schema")
+        while resp_schema is not None and len(resp_schema) == 0:
+            if raw_data_dict['next_uri'] is None:
+                break
+            resp = self.next_page(raw_data_dict['next_uri'])
+            resp_dict = json.loads(resp.content)
+            raw_data_dict = resp_dict
+            resp_schema = raw_data_dict.get("schema")
+            if resp_schema is not None and (len(resp_schema) != 0 or len(raw_data_dict.get("data")) != 0):
+                break
+        return raw_data_dict
 
     def next_page(self, next_uri):
         url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
