@@ -207,6 +207,42 @@ class DatabendPyTestCase(TestCase):
         client.execute("select 2")
         self.assertNotEqual(execute_query_id1, client.connection.additional_headers["X-Databend-Query-Id"])
 
+    def test_commit(self):
+        client = Client.from_url(self.databend_url)
+        client.execute("create or replace table test_commit (x int)")
+        client.begin()
+        client.execute("insert into test_commit values (1)")
+        _, data = client.execute("select * from test_commit")
+        self.assertEqual(data, [(1,)])
+
+        client2 = Client.from_url(self.databend_url)
+        client2.begin()
+        client2.execute("insert into test_commit values (2)")
+        _, data = client2.execute("select * from test_commit")
+        self.assertEqual(data, [(2,)])
+
+        client.commit()
+        _, data = client.execute("select * from test_commit")
+        self.assertEqual(data, [(1,)])
+
+    def test_rollback(self):
+        client = Client.from_url(self.databend_url)
+        client.execute("create or replace table test_rollback (x int)")
+        client.begin()
+        client.execute("insert into test_rollback values (1)")
+        _, data = client.execute("select * from test_rollback")
+        self.assertEqual(data, [(1,)])
+
+        client2 = Client.from_url(self.databend_url)
+        client2.begin()
+        client2.execute("insert into test_rollback values (2)")
+        _, data = client2.execute("select * from test_rollback")
+        self.assertEqual(data, [(2,)])
+
+        client.rollback()
+        _, data = client.execute("select * from test_rollback")
+        self.assertEqual(data, [])
+
 
 if __name__ == '__main__':
     print("start test......")
