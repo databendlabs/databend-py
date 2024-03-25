@@ -199,9 +199,11 @@ class DatabendPyTestCase(TestCase):
         self.assertIsNone(data[0][0])
 
     def test_set_query_id_header(self):
+        os.environ["ADDITIONAL_HEADERS"] = "X-DATABENDCLOUD-TENANT=TENANT,X-DATABENDCLOUD-WAREHOUSE=WAREHOUSE"
         client = Client.from_url(self.databend_url)
+        self.assertEqual("X-DATABENDCLOUD-TENANT" in client.connection.additional_headers, True)
+        self.assertEqual(client.connection.additional_headers["X-DATABENDCLOUD-TENANT"], "TENANT")
         client.execute("select 1")
-        print(client.connection.additional_headers)
         execute_query_id1 = client.connection.additional_headers["X-Databend-Query-Id"]
         self.assertEqual("X-Databend-Query-Id" in client.connection.additional_headers, True)
         client.execute("select 2")

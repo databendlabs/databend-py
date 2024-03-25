@@ -164,7 +164,11 @@ class Connection(object):
         try:
             resp_dict = self.do_query(url, query_sql)
             self.client_session = resp_dict.get("session", self.default_session())
-            self.additional_headers = {XDatabendQueryIDHeader: resp_dict.get(QueryID)}
+            if self.additional_headers:
+                self.additional_headers.update(
+                    {XDatabendQueryIDHeader: resp_dict.get(QueryID)})
+            else:
+                self.additional_headers = {XDatabendQueryIDHeader: resp_dict.get(QueryID)}
             return self.wait_until_has_schema(resp_dict)
         except Exception as err:
             log.logger.error(
