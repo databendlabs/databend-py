@@ -135,17 +135,21 @@ class Connection(object):
                                               auth=HTTPBasicAuth(self.user, self.password),
                                               timeout=(self.connect_timeout, self.read_timeout),
                                               verify=True)
-        try:
-            resp_dict = json.loads(response.content)
-        except json.decoder.JSONDecodeError:
-            raise UnexpectedException("failed to parse response: %s" % response.content)
-        if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
-            raise WarehouseTimeoutException
-        if resp_dict and resp_dict.get('error'):
-            raise UnexpectedException("failed to query: %s" % response.content)
-        if self.persist_cookies:
-            self.cookies = response.cookies
-        return resp_dict
+
+        if response.content:
+            try:
+                resp_dict = json.loads(response.content)
+            except ValueError:
+                raise UnexpectedException("failed to parse response: %s" % response.content)
+            if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
+                raise WarehouseTimeoutException
+            if resp_dict and resp_dict.get('error'):
+                raise UnexpectedException("failed to query: %s" % response.content)
+            if self.persist_cookies:
+                self.cookies = response.cookies
+            return resp_dict
+        else:
+            raise UnexpectedException("response content is empty: %s" % response)
 
     def query(self, statement):
         url = self.format_url()
