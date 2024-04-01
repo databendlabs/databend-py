@@ -46,8 +46,8 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(c.connection.schema, "http")
         c = Client.from_url("databend://root:root@localhost:8000/default?compress=True")
         self.assertEqual(c._uploader._compress, True)
-        self.assertEqual(c.connection.connect_timeout, 20)
-        self.assertEqual(c.connection.read_timeout, 20)
+        self.assertEqual(c.connection.connect_timeout, 180)
+        self.assertEqual(c.connection.read_timeout, 180)
 
         c = Client.from_url("databend://root:root@localhost:8000/default?connect_timeout=30&read_timeout=30")
         self.assertEqual(c.connection.connect_timeout, 30)
