@@ -135,6 +135,15 @@ class Connection(object):
                                               auth=HTTPBasicAuth(self.user, self.password),
                                               timeout=(self.connect_timeout, self.read_timeout),
                                               verify=True)
+        if response.status_code != 200:
+            try:
+                resp_dict = json.loads(response.content)
+                if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
+                    raise WarehouseTimeoutException
+            except ValueError:
+                pass
+            raise UnexpectedException("Unexpected status code %d when post query, content: %s" %
+                                      (response.status_code, response.content))
 
         if response.content:
             try:
@@ -196,6 +205,7 @@ class Connection(object):
             if raw_data_dict['next_uri'] is None:
                 break
             resp = self.next_page(raw_data_dict['next_uri'])
+
             resp_dict = json.loads(resp.content)
             raw_data_dict = resp_dict
             resp_schema = raw_data_dict.get("schema")
@@ -205,7 +215,12 @@ class Connection(object):
 
     def next_page(self, next_uri):
         url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
-        return self.requests_session.get(url=url, headers=self.make_headers(), cookies=self.cookies)
+
+        response = self.requests_session.get(url=url, headers=self.make_headers(), cookies=self.cookies)
+        if response.status_code != 200:
+            raise UnexpectedException("Unexpected status code %d when get %s, content: %s" %
+                                      (response.status_code, url, response.content))
+        return response
 
     # return a list of response util empty next_uri
     def query_with_session(self, statement):
