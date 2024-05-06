@@ -76,7 +76,7 @@ class DataUploader:
         if compress:
             buf = io.BytesIO()
             with gzip.GzipFile(fileobj=buf, mode="wb") as gzwriter:
-                gzwriter.write(output.encode('utf-8'))
+                gzwriter.write(output)
             output = buf.getvalue()
         if self._debug:
             print('upload:_serialize_data %s' % (time.time() - start_time))
