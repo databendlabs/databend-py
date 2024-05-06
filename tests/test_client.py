@@ -198,6 +198,13 @@ class DatabendPyTestCase(TestCase):
         _, data = client.execute("select NULL as test")
         self.assertIsNone(data[0][0])
 
+    def test_special_chars(self):
+        client = Client.from_url(self.databend_url)
+        client.execute("create or replace table test_special_chars (x string)")
+        client.execute("INSERT INTO test_special_chars (x) VALUES", [('ó')])
+        _, data = client.execute("select * from test_special_chars")
+        self.assertEqual(data, [('ó')])
+
     def test_set_query_id_header(self):
         os.environ["ADDITIONAL_HEADERS"] = "X-DATABENDCLOUD-TENANT=TENANT,X-DATABENDCLOUD-WAREHOUSE=WAREHOUSE"
         client = Client.from_url(self.databend_url)

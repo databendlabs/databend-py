@@ -97,7 +97,7 @@ class DataUploader:
             raise Exception('data is not bytes, File, or a list: %s' % type(data))
         start_time = time.time()
         try:
-            resp = requests.put(presigned_url, headers=headers, data=buf)
+            resp = requests.put(presigned_url, headers=headers, data=buf.encode('utf-8'))
             resp.raise_for_status()
         finally:
             if self._debug:
