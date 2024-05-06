@@ -72,7 +72,7 @@ class DataUploader:
         buf = io.StringIO()
         csvwriter = csv.writer(buf, delimiter=',', quoting=csv.QUOTE_MINIMAL)
         csvwriter.writerows(data)
-        output = buf.getvalue()
+        output = buf.getvalue().encode('utf-8')
         if compress:
             buf = io.BytesIO()
             with gzip.GzipFile(fileobj=buf, mode="wb") as gzwriter:
