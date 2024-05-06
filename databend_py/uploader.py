@@ -90,7 +90,7 @@ class DataUploader:
             buf_size = len(buf)
             data_len = 1
         elif isinstance(data, list):
-            buf = self._serialize_data(data, self._compress).encode('utf-8')
+            buf = self._serialize_data(data, self._compress)
             buf_size = len(buf)
             data_len = len(data)
         else:
