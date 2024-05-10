@@ -143,7 +143,7 @@ class Connection(object):
             except ValueError:
                 pass
             raise UnexpectedException("Unexpected status code %d when post query, content: %s, headers: %s" %
-                                      (response.status_code, response.content, self.make_headers()))
+                                      (response.status_code, response.content, response.headers))
 
         if response.content:
             try:
