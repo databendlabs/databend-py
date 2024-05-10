@@ -142,8 +142,8 @@ class Connection(object):
                     raise WarehouseTimeoutException
             except ValueError:
                 pass
-            raise UnexpectedException("Unexpected status code %d when post query, content: %s" %
-                                      (response.status_code, response.content))
+            raise UnexpectedException("Unexpected status code %d when post query, content: %s, headers: %s" %
+                                      (response.status_code, response.content, self.make_headers()))
 
         if response.content:
             try:
