@@ -127,7 +127,7 @@ class Connection(object):
     def disconnect(self):
         self.client_session = dict()
 
-    @retry(times=5, exceptions=WarehouseTimeoutException)
+    @retry(times=10, exceptions=WarehouseTimeoutException)
     def do_query(self, url, query_sql):
         response = self.requests_session.post(url,
                                               data=json.dumps(query_sql),
