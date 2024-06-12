@@ -3,6 +3,7 @@ import time
 from databend_py.errors import WarehouseTimeoutException
 
 
+# retry in 550s for WarehouseTimeoutException
 def retry(times, exceptions):
     """
     Retry Decorator
@@ -15,8 +16,8 @@ def retry(times, exceptions):
 
     def decorator(func):
         def newfn(*args, **kwargs):
-            attempt = 0
-            while attempt < times:
+            attempt = 1
+            while attempt <= times:
                 try:
                     return func(*args, **kwargs)
                 except exceptions:
@@ -24,7 +25,7 @@ def retry(times, exceptions):
                         'Exception thrown when attempting to run %s, attempt '
                         '%d of %d' % (func, attempt, times)
                     )
-                    time.sleep(attempt * 5)
+                    time.sleep(attempt * 10)
                     attempt += 1
             return func(*args, **kwargs)
 
