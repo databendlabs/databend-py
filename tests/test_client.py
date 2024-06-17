@@ -252,6 +252,11 @@ class DatabendPyTestCase(TestCase):
         _, data = client.execute("select * from test_rollback")
         self.assertEqual(data, [])
 
+    def test_cast_bool(self):
+        client = Client.from_url(self.databend_url)
+        _, data = client.execute("select 'False'::boolean union select 'True'::boolean")
+        self.assertEqual(data, [(True,), (False,)])
+
 
 if __name__ == '__main__':
     print("start test......")
@@ -269,4 +274,5 @@ if __name__ == '__main__':
     dt.test_cookies()
     dt.test_null_to_none()
     dt.tearDown()
+    dt.test_cast_bool()
     print("end test.....")
