@@ -23,7 +23,7 @@ class DatabendDataType:
         elif DOUBLETYPE in type_str.lower():
             return float
         elif BOOLEANTYPE in type_str.lower():
-            return bool
+            return str_to_bool
         elif MAPTYPE in type_str.lower():
             return ast.literal_eval
         elif ARRAYTYPE in type_str.lower():
@@ -32,6 +32,12 @@ class DatabendDataType:
             return ast.literal_eval
         else:
             return str
+
+
+def str_to_bool(s):
+    if isinstance(s, str) and s.isdigit():
+        return bool(int(s))
+    return bool(s)
 
 
 if __name__ == '__main__':
