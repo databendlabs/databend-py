@@ -2,6 +2,8 @@ import json
 import os
 import base64
 import time
+import uuid
+
 from requests.auth import HTTPBasicAuth
 
 import environs
@@ -13,7 +15,7 @@ from databend_py.errors import WarehouseTimeoutException, UnexpectedException, S
 from databend_py.retry import retry
 from databend_py.sdk_info import sdk_info
 
-XDatabendQueryIDHeader = "X-Databend-Query-Id"
+XDatabendQueryIDHeader = "X-DATABEND-QUERY-ID"
 XDatabendTenantHeader = "X-DATABEND-TENANT"
 XDatabendWarehouseHeader = "X-DATABEND-WAREHOUSE"
 QueryID = "id"
@@ -171,8 +173,9 @@ class Connection(object):
         else:
             self.client_session = self.default_session()
             query_sql['session'] = self.client_session
-        if XDatabendQueryIDHeader in self.additional_headers:
-            del self.additional_headers[XDatabendQueryIDHeader]
+        # if XDatabendQueryIDHeader in self.additional_headers:
+        #     del self.additional_headers[XDatabendQueryIDHeader]
+        self.additional_headers.update({XDatabendQueryIDHeader: str(uuid.uuid4())})
         log.logger.debug(f"http headers {self.make_headers()}")
         try:
             resp_dict = self.do_query(url, query_sql)
