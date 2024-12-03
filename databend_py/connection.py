@@ -76,10 +76,7 @@ class GlobalCookieJar(RequestsCookieJar):
         super().set_cookie(cookie, *args, **kwargs)
 
     def get_dict(self, domain=None, path=None):
-        # 忽略 domain 和 path 参数，返回所有 Cookie
         return {cookie.name: cookie.value for cookie in self}
-
-
 
 
 class Connection(object):

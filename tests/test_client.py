@@ -260,7 +260,7 @@ class DatabendPyTestCase(TestCase):
     def test_temp_table(self):
         client = Client.from_url(self.databend_url)
         client.execute("create temp table t1(a int)")
-        client.execute("insert into temp table t1 values (1)")
+        client.execute("insert into t1 values (1)")
         _, data = client.execute("select * from t1")
         self.assertEqual(data, [(1,)])
         client.execute("drop table t1")
