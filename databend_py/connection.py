@@ -4,7 +4,9 @@ import base64
 import time
 import uuid
 
+from http.cookiejar import Cookie
 from requests.auth import HTTPBasicAuth
+from requests.cookies import RequestsCookieJar
 
 import environs
 import requests
@@ -63,6 +65,23 @@ def get_error(response):
         response['error']['code'])
 
 
+class GlobalCookieJar(RequestsCookieJar):
+
+    def __init__(self):
+        super().__init__()
+
+    def set_cookie(self, cookie: Cookie, *args, **kwargs):
+        cookie.domain = ""
+        cookie.path = "/"
+        super().set_cookie(cookie, *args, **kwargs)
+
+    def get_dict(self, domain=None, path=None):
+        # 忽略 domain 和 path 参数，返回所有 Cookie
+        return {cookie.name: cookie.value for cookie in self}
+
+
+
+
 class Connection(object):
     # Databend http handler doc: https://databend.rs/doc/reference/api/rest
 
@@ -96,6 +115,9 @@ class Connection(object):
         self.query_option = None
         self.context = Context()
         self.requests_session = requests.Session()
+        cookie_jar = GlobalCookieJar()
+        cookie_jar.set("cookie_enabled", "true")
+        self.requests_session.cookies = cookie_jar
         self.schema = 'http'
         if self.secure:
             self.schema = 'https'
