@@ -12,7 +12,7 @@ jobs:
     services:
       databend:
         # image: datafuselabs/databend-query
-        image: datafuselabs/databend
+        image: datafuselabs/databend:nightly
         env:
           QUERY_DEFAULT_USER: databend
           QUERY_DEFAULT_PASSWORD: databend
