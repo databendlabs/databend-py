@@ -223,7 +223,9 @@ class Connection(object):
         log.logger.debug(f"http headers {self.make_headers()}")
         try:
             resp_dict = self.do_query(url, query_sql)
-            self.client_session = resp_dict.get("session", self.default_session())
+            new_session_state = resp_dict.get("session", self.default_session())
+            if new_session_state:
+                self.client_session = new_session_state
             if self.additional_headers:
                 self.additional_headers.update(
                     {XDatabendQueryIDHeader: resp_dict.get(QueryID)}
@@ -286,7 +288,7 @@ class Connection(object):
         response_list.append(response)
         start_time = time.time()
         time_limit = 12
-        session = response.get("session", self.default_session())
+        session = response.get("session")
         if session:
             self.client_session = session
         while response["next_uri"] is not None:
@@ -294,7 +296,7 @@ class Connection(object):
             response = json.loads(resp.content)
             log.logger.debug(f"Sql in progress, fetch next_uri content: {response}")
             self.check_error(response)
-            session = response.get("session", self.default_session())
+            session = response.get("session")
             if session:
                 self.client_session = session
             response_list.append(response)
