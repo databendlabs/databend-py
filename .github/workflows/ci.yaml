@@ -23,6 +23,9 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
 
+      - name: Start databend-server
+        run: make up
+
       - name: Verify Service Running
         run: |
           cid=$(docker ps -a | grep databend | cut -d' ' -f1)
@@ -33,6 +36,5 @@ jobs:
         env:
             TEST_DATABEND_DSN: "http://databend:databend@localhost:8000/default"
         run: |
-          make up
           make lint
           make ci
