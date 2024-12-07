@@ -3,8 +3,10 @@ import unittest
 import types
 from databend_py import Client
 
+
 def sample_insert_data():
     return [(1, "a"), (1, "b")]
+
 
 def create_csv():
     import csv
@@ -13,9 +15,6 @@ def create_csv():
         writer = csv.writer(file)
         writer.writerow([1, "a"])
         writer.writerow([1, "b"])
-
-
-os.environ["TEST_DATABEND_DSN"] = "http://root:@localhost:8000"
 
 
 class DatabendPyTestCase(unittest.TestCase):
