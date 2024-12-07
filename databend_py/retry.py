@@ -22,8 +22,8 @@ def retry(times, exceptions):
                     return func(*args, **kwargs)
                 except exceptions:
                     print(
-                        'Exception thrown when attempting to run %s, attempt '
-                        '%d of %d' % (func, attempt, times)
+                        "Exception thrown when attempting to run %s, attempt "
+                        "%d of %d" % (func, attempt, times)
                     )
                     time.sleep(attempt * 10)
                     attempt += 1
@@ -36,10 +36,10 @@ def retry(times, exceptions):
 
 @retry(times=3, exceptions=WarehouseTimeoutException)
 def foo1():
-    print('Some code here ....')
-    print('Oh no, we have exception')
-    raise WarehouseTimeoutException('Some error')
+    print("Some code here ....")
+    print("Oh no, we have exception")
+    raise WarehouseTimeoutException("Some error")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     foo1()

@@ -13,5 +13,5 @@ def ordinary_query():
     print(res2)
 
     # create table/ drop table
-    client.execute('DROP TABLE IF EXISTS test')
-    client.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
+    client.execute("DROP TABLE IF EXISTS test")
+    client.execute("CREATE TABLE if not exists test (x Int32,y VARCHAR)")

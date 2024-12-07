@@ -1,12 +1,9 @@
 test:
-	python tests/test_client.py
+	pytest .
 
 ci:
-	python tests/test_client.py
+	pytest .
 
 lint:
-	pyflakes .
+	uvx ruff check
 
-install:
-	pip install -r requirements.txt
-	pip install -e .

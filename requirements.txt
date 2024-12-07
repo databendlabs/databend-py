@@ -1,6 +1,0 @@
-environs==9.5.0
-pytz==2022.5
-requests==2.28.1
-setuptools==62.3.2
-black==23.3.0
-pyflakes==3.0.1

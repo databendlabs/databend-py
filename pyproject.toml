@@ -1,0 +1,22 @@
+[project]
+name = "databend-py"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "black>=24.10.0",
+    "databend-driver>=0.23.2",
+    "environs>=11.2.1",
+    "pytz>=2024.2",
+    "requests>=2.32.3",
+    "setuptools>=75.6.0",
+]
+
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.4",
+    "requests>=2.32.3",
+    "ruff>=0.8.2",
+]

@@ -40,6 +40,6 @@ def str_to_bool(s):
     return bool(s)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     d = DatabendDataType()
-    print(d.type_convert_fn("Uint64")('0'))
+    print(d.type_convert_fn("Uint64")("0"))

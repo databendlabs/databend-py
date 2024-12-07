@@ -11,7 +11,11 @@ import requests
 from . import log
 from . import defines
 from .context import Context
-from databend_py.errors import WarehouseTimeoutException, UnexpectedException, ServerException
+from databend_py.errors import (
+    WarehouseTimeoutException,
+    UnexpectedException,
+    ServerException,
+)
 from databend_py.retry import retry
 from databend_py.sdk_info import sdk_info
 
@@ -22,8 +26,16 @@ QueryID = "id"
 
 
 class ServerInfo(object):
-    def __init__(self, name, version_major, version_minor, version_patch,
-                 revision, timezone, display_name):
+    def __init__(
+        self,
+        name,
+        version_major,
+        version_minor,
+        version_patch,
+        revision,
+        timezone,
+        display_name,
+    ):
         self.name = name
         self.version_major = version_major
         self.version_minor = version_minor
@@ -38,29 +50,29 @@ class ServerInfo(object):
         return self.version_major, self.version_minor, self.version_patch
 
     def __repr__(self):
-        version = '%s.%s.%s' % (
-            self.version_major, self.version_minor, self.version_patch
+        version = "%s.%s.%s" % (
+            self.version_major,
+            self.version_minor,
+            self.version_patch,
         )
         items = [
-            ('name', self.name),
-            ('version', version),
-            ('revision', self.revision),
-            ('timezone', self.timezone),
-            ('display_name', self.display_name)
+            ("name", self.name),
+            ("version", version),
+            ("revision", self.revision),
+            ("timezone", self.timezone),
+            ("display_name", self.display_name),
         ]
 
-        params = ', '.join('{}={}'.format(key, value) for key, value in items)
-        return '<ServerInfo(%s)>' % (params)
+        params = ", ".join("{}={}".format(key, value) for key, value in items)
+        return "<ServerInfo(%s)>" % (params)
 
 
 def get_error(response):
-    if response['error'] is None:
+    if response["error"] is None:
         return None
 
     # Wrap errno into msg, for result check
-    return ServerException(
-        response['error']['message'],
-        response['error']['code'])
+    return ServerException(response["error"]["message"], response["error"]["code"])
 
 
 class Connection(object):
@@ -74,11 +86,22 @@ class Connection(object):
     #   'port': 3307,
     #   'database': 'default'
     # }
-    def __init__(self, host, tenant=None, warehouse=None, port=None, user=defines.DEFAULT_USER,
-                 password=defines.DEFAULT_PASSWORD,
-                 connect_timeout=defines.DEFAULT_CONNECT_TIMEOUT, read_timeout=defines.DEFAULT_READ_TIMEOUT,
-                 database=defines.DEFAULT_DATABASE, secure=False, copy_purge=False, session_settings=None,
-                 persist_cookies=False):
+    def __init__(
+        self,
+        host,
+        tenant=None,
+        warehouse=None,
+        port=None,
+        user=defines.DEFAULT_USER,
+        password=defines.DEFAULT_PASSWORD,
+        connect_timeout=defines.DEFAULT_CONNECT_TIMEOUT,
+        read_timeout=defines.DEFAULT_READ_TIMEOUT,
+        database=defines.DEFAULT_DATABASE,
+        secure=False,
+        copy_purge=False,
+        session_settings=None,
+        persist_cookies=False,
+    ):
         self.host = host
         self.port = port
         self.tenant = tenant
@@ -96,9 +119,9 @@ class Connection(object):
         self.query_option = None
         self.context = Context()
         self.requests_session = requests.Session()
-        self.schema = 'http'
+        self.schema = "http"
         if self.secure:
-            self.schema = 'https'
+            self.schema = "https"
         e = environs.Env()
         if os.getenv("ADDITIONAL_HEADERS") is not None:
             print(os.getenv("ADDITIONAL_HEADERS"))
@@ -110,51 +133,72 @@ class Connection(object):
         return {"database": self.database}
 
     def make_headers(self):
-        headers = {'Content-Type': 'application/json', 'User-Agent': sdk_info(), 'Accept': 'application/json',
-                   'X-DATABEND-ROUTE': 'warehouse', XDatabendTenantHeader: self.tenant,
-                   XDatabendWarehouseHeader: self.warehouse}
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": sdk_info(),
+            "Accept": "application/json",
+            "X-DATABEND-ROUTE": "warehouse",
+            XDatabendTenantHeader: self.tenant,
+            XDatabendWarehouseHeader: self.warehouse,
+        }
         if "Authorization" not in self.additional_headers:
             return {
-                **headers, **self.additional_headers,
-                "Authorization":
-                    "Basic " + base64.b64encode("{}:{}".format(
-                        self.user, self.password).encode(encoding="utf-8")).decode()
+                **headers,
+                **self.additional_headers,
+                "Authorization": "Basic "
+                + base64.b64encode(
+                    "{}:{}".format(self.user, self.password).encode(encoding="utf-8")
+                ).decode(),
             }
         else:
             return {**headers, **self.additional_headers}
 
     def get_description(self):
-        return '{}:{}'.format(self.host, self.port)
+        return "{}:{}".format(self.host, self.port)
 
     def disconnect(self):
         self.client_session = dict()
 
     @retry(times=10, exceptions=WarehouseTimeoutException)
     def do_query(self, url, query_sql):
-        response = self.requests_session.post(url,
-                                              data=json.dumps(query_sql),
-                                              headers=self.make_headers(),
-                                              auth=HTTPBasicAuth(self.user, self.password),
-                                              timeout=(self.connect_timeout, self.read_timeout),
-                                              verify=True)
+        response = self.requests_session.post(
+            url,
+            data=json.dumps(query_sql),
+            headers=self.make_headers(),
+            auth=HTTPBasicAuth(self.user, self.password),
+            timeout=(self.connect_timeout, self.read_timeout),
+            verify=True,
+        )
         if response.status_code != 200:
             try:
                 resp_dict = json.loads(response.content)
-                if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
+                if (
+                    resp_dict
+                    and resp_dict.get("error")
+                    and "no endpoint" in resp_dict.get("error")
+                ):
                     raise WarehouseTimeoutException
             except ValueError:
                 pass
-            raise UnexpectedException("Unexpected status code %d when post query, content: %s, headers: %s" %
-                                      (response.status_code, response.content, response.headers))
+            raise UnexpectedException(
+                "Unexpected status code %d when post query, content: %s, headers: %s"
+                % (response.status_code, response.content, response.headers)
+            )
 
         if response.content:
             try:
                 resp_dict = json.loads(response.content)
             except ValueError:
-                raise UnexpectedException("failed to parse response: %s" % response.content)
-            if resp_dict and resp_dict.get('error') and "no endpoint" in resp_dict.get('error'):
+                raise UnexpectedException(
+                    "failed to parse response: %s" % response.content
+                )
+            if (
+                resp_dict
+                and resp_dict.get("error")
+                and "no endpoint" in resp_dict.get("error")
+            ):
                 raise WarehouseTimeoutException
-            if resp_dict and resp_dict.get('error'):
+            if resp_dict and resp_dict.get("error"):
                 raise UnexpectedException("failed to query: %s" % response.content)
             if self.persist_cookies:
                 self.cookies = response.cookies
@@ -165,14 +209,14 @@ class Connection(object):
     def query(self, statement):
         url = self.format_url()
         log.logger.debug(f"http sql: {statement}")
-        query_sql = {'sql': statement, "string_fields": True}
+        query_sql = {"sql": statement, "string_fields": True}
         if self.client_session is not None and len(self.client_session) != 0:
             if "database" not in self.client_session:
                 self.client_session = self.default_session()
-            query_sql['session'] = self.client_session
+            query_sql["session"] = self.client_session
         else:
             self.client_session = self.default_session()
-            query_sql['session'] = self.client_session
+            query_sql["session"] = self.client_session
         # if XDatabendQueryIDHeader in self.additional_headers:
         #     del self.additional_headers[XDatabendQueryIDHeader]
         self.additional_headers.update({XDatabendQueryIDHeader: str(uuid.uuid4())})
@@ -182,9 +226,12 @@ class Connection(object):
             self.client_session = resp_dict.get("session", self.default_session())
             if self.additional_headers:
                 self.additional_headers.update(
-                    {XDatabendQueryIDHeader: resp_dict.get(QueryID)})
+                    {XDatabendQueryIDHeader: resp_dict.get(QueryID)}
+                )
             else:
-                self.additional_headers = {XDatabendQueryIDHeader: resp_dict.get(QueryID)}
+                self.additional_headers = {
+                    XDatabendQueryIDHeader: resp_dict.get(QueryID)
+                }
             return self.wait_until_has_schema(resp_dict)
         except Exception as err:
             log.logger.error(
@@ -205,24 +252,30 @@ class Connection(object):
     def wait_until_has_schema(self, raw_data_dict):
         resp_schema = raw_data_dict.get("schema")
         while resp_schema is not None and len(resp_schema) == 0:
-            if raw_data_dict['next_uri'] is None:
+            if raw_data_dict["next_uri"] is None:
                 break
-            resp = self.next_page(raw_data_dict['next_uri'])
+            resp = self.next_page(raw_data_dict["next_uri"])
 
             resp_dict = json.loads(resp.content)
             raw_data_dict = resp_dict
             resp_schema = raw_data_dict.get("schema")
-            if resp_schema is not None and (len(resp_schema) != 0 or len(raw_data_dict.get("data")) != 0):
+            if resp_schema is not None and (
+                len(resp_schema) != 0 or len(raw_data_dict.get("data")) != 0
+            ):
                 break
         return raw_data_dict
 
     def next_page(self, next_uri):
         url = "{}://{}:{}{}".format(self.schema, self.host, self.port, next_uri)
 
-        response = self.requests_session.get(url=url, headers=self.make_headers(), cookies=self.cookies)
+        response = self.requests_session.get(
+            url=url, headers=self.make_headers(), cookies=self.cookies
+        )
         if response.status_code != 200:
-            raise UnexpectedException("Unexpected status code %d when get %s, content: %s" %
-                                      (response.status_code, url, response.content))
+            raise UnexpectedException(
+                "Unexpected status code %d when get %s, content: %s"
+                % (response.status_code, url, response.content)
+            )
         return response
 
     # return a list of response util empty next_uri
@@ -236,8 +289,8 @@ class Connection(object):
         session = response.get("session", self.default_session())
         if session:
             self.client_session = session
-        while response['next_uri'] is not None:
-            resp = self.next_page(response['next_uri'])
+        while response["next_uri"] is not None:
+            resp = self.next_page(response["next_uri"])
             response = json.loads(resp.content)
             log.logger.debug(f"Sql in progress, fetch next_uri content: {response}")
             self.check_error(response)

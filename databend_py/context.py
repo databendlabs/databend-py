@@ -1,4 +1,3 @@
-
 class Context(object):
     def __init__(self):
         self._server_info = None
@@ -31,6 +30,8 @@ class Context(object):
         self._client_settings = value.copy()
 
     def __repr__(self):
-        return '<Context(server_info=%s, client_settings=%s, settings=%s)>' % (
-            self._server_info, self._client_settings, self._settings
+        return "<Context(server_info=%s, client_settings=%s, settings=%s)>" % (
+            self._server_info,
+            self._client_settings,
+            self._settings,
         )
