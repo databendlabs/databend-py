@@ -228,7 +228,7 @@ class DatabendPyTestCase(unittest.TestCase):
         client.execute("create or replace table test_special_chars (x string)")
         client.execute("INSERT INTO test_special_chars (x) VALUES", [("ó")])
         _, data = client.execute("select * from test_special_chars")
-        self.assertEqual(data, [("ó")])
+        self.assertEqual(data, [("ó",)])
 
     def test_set_query_id_header(self):
         os.environ["ADDITIONAL_HEADERS"] = (
@@ -242,14 +242,14 @@ class DatabendPyTestCase(unittest.TestCase):
             client.connection.additional_headers["X-DATABENDCLOUD-TENANT"], "TENANT"
         )
         client.execute("select 1")
-        execute_query_id1 = client.connection.additional_headers["X-Databend-Query-Id"]
+        execute_query_id1 = client.connection.additional_headers["X-DATABEND-QUERY-ID"]
         self.assertEqual(
-            "X-Databend-Query-Id" in client.connection.additional_headers, True
+            "X-DATABEND-QUERY-ID" in client.connection.additional_headers, True
         )
         client.execute("select 2")
         self.assertNotEqual(
             execute_query_id1,
-            client.connection.additional_headers["X-Databend-Query-Id"],
+            client.connection.additional_headers["X-DATABEND-QUERY-ID"],
         )
 
     def test_commit(self):
