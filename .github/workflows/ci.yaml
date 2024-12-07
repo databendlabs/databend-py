@@ -26,12 +26,6 @@ jobs:
       - name: Start databend-server
         run: make up
 
-      - name: Verify Service Running
-        run: |
-          cid=$(docker ps -a | grep databend | cut -d' ' -f1)
-          docker logs ${cid}
-          curl -v http://localhost:8000/v1/health
-
       - name: Test
         env:
             TEST_DATABEND_DSN: "http://databend:databend@localhost:8000/default"
