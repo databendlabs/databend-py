@@ -1,9 +1,9 @@
 test:
-	pytest .
+	uv run pytest .
 
 ci:
-	pytest .
+	uv run pytest .
 
 lint:
-	uvx ruff check
+	uv run ruff check
 

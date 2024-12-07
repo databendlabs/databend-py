@@ -3,7 +3,11 @@ name = "databend-py"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+authors = [
+    {name = "Databend Cloud Team"}
+]
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
 dependencies = [
     "black>=24.10.0",
     "databend-driver>=0.23.2",
@@ -13,6 +17,25 @@ dependencies = [
     "setuptools>=75.6.0",
 ]
 
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Programming Language :: SQL",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Database",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Information Analysis"
+]
 
 [tool.uv]
 dev-dependencies = [
@@ -20,3 +43,7 @@ dev-dependencies = [
     "requests>=2.32.3",
     "ruff>=0.8.2",
 ]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"

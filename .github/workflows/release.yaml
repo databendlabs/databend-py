@@ -14,19 +14,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.9
+        run: uv python install
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel twine
-
-      - name: Determine Version Change
-        run: |
-          export VERSION=$(cat databend_py/VERSION)
+      - name: Install the project
+        run: uv sync --all-extras --dev
 
       - name: Release Package and Tag
         env:
@@ -38,7 +33,7 @@ jobs:
           git config user.email "hantmac@outlook.com"
           git tag -a "v$VERSION" -m "Release Version $VERSION"
           git push origin "v$VERSION"
-          python setup.py sdist bdist_wheel
+          uv publish
           echo "show user name:"
           echo ${{ secrets.TWINE_USERNAME }}
           twine upload -u ${{ secrets.TWINE_USERNAME }} -p ${{ secrets.TWINE_PASSWORD }} dist/*
