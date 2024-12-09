@@ -8,22 +8,24 @@ class Helper(object):
         super(Helper, self).__init__()
 
     def get_result_data(self):
-        return self.response['data']
+        return self.response["data"]
 
     def get_fields(self):
         return self.response["schema"]["fields"]
 
     def get_next_uri(self):
         if "next_uri" in self.response:
-            return self.response['next_uri']
+            return self.response["next_uri"]
         return None
 
     def get_error(self):
-        if self.response['error'] is None:
+        if self.response["error"] is None:
             return None
 
-        return ServerException(message=self.response['error']['message'],
-                               code=self.response['error'].get('code'))
+        return ServerException(
+            message=self.response["error"]["message"],
+            code=self.response["error"].get("code"),
+        )
 
     def check_error(self):
         error = self.get_error()
@@ -35,11 +37,11 @@ def chunks(seq, n):
     # islice is MUCH slower than slice for lists and tuples.
     if isinstance(seq, (list, tuple)):
         i = 0
-        item = seq[i:i + n]
+        item = seq[i : i + n]
         while item:
             yield list(item)
             i += n
-            item = seq[i:i + n]
+            item = seq[i : i + n]
 
     else:
         it = iter(seq)
@@ -59,8 +61,9 @@ def column_chunks(columns, n):
     for column in columns:
         if not isinstance(column, (list, tuple)):
             raise TypeError(
-                'Unsupported column type: {}. list or tuple is expected.'
-                    .format(type(column))
+                "Unsupported column type: {}. list or tuple is expected.".format(
+                    type(column)
+                )
             )
 
     # create chunk generator for every column
@@ -78,10 +81,10 @@ def column_chunks(columns, n):
 def asbool(obj):
     if isinstance(obj, str):
         obj = obj.strip().lower()
-        if obj in ['true', 'yes', 'on', 'y', 't', '1']:
+        if obj in ["true", "yes", "on", "y", "t", "1"]:
             return True
-        elif obj in ['false', 'no', 'off', 'n', 'f', '0']:
+        elif obj in ["false", "no", "off", "n", "f", "0"]:
             return False
         else:
-            raise ValueError('String is not true/false: %r' % obj)
+            raise ValueError("String is not true/false: %r" % obj)
     return bool(obj)

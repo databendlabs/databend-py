@@ -8,8 +8,8 @@ class QueryResult(object):
     """
 
     def __init__(
-            self, data_generator, first_data,
-            with_column_types=False, null_to_none=False):
+        self, data_generator, first_data, with_column_types=False, null_to_none=False
+    ):
         self.data_generator = data_generator
         self.with_column_types = with_column_types
         self.first_data = first_data
@@ -26,7 +26,7 @@ class QueryResult(object):
         column_name_ls = []
         datas = raw_data.get("data")
         for field in fields:
-            column_name_ls.append(field['name'])
+            column_name_ls.append(field["name"])
 
         for data in datas:
             self.column_data_dict_list.append(dict(zip(column_name_ls, data)))
@@ -35,8 +35,8 @@ class QueryResult(object):
         fields = raw_data.get("schema")
         for field in fields:
             inner_type = self.extract_type(field["type"])
-            column_type = (field['name'], inner_type)
-            self.column_type_dic[field['name']] = inner_type
+            column_type = (field["name"], inner_type)
+            self.column_type_dic[field["name"]] = inner_type
             self.columns_with_types.append(column_type)
 
     def get_result(self):
@@ -52,7 +52,7 @@ class QueryResult(object):
         for read_data in self.column_data_dict_list:
             tmp_list = []
             for c, d in read_data.items():
-                if d == 'NULL':
+                if d == "NULL":
                     if self.null_to_none:
                         tmp_list.append(None)
                     else:

@@ -9,39 +9,26 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      databend:
-        # image: datafuselabs/databend-query
-        image: datafuselabs/databend
-        env:
-          QUERY_DEFAULT_USER: databend
-          QUERY_DEFAULT_PASSWORD: databend
-          MINIO_ENABLED: true
-        ports:
-          - 8000:8000
-          - 9000:9000
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Python-3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
 
-      - name: Pip Install
-        run: |
-          make install
+      - name: Set up Python
+        run: uv python install
 
-      - name: Verify Service Running
-        run: |
-          cid=$(docker ps -a | grep databend | cut -d' ' -f1)
-          docker logs ${cid}
-          curl -v http://localhost:8000/v1/health
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Start databend-server
+        run: make up
 
       - name: Test
         env:
-            TEST_DATABEND_DSN: "http://databend:databend@localhost:8000/default"
+            TEST_DATABEND_DSN: "http://root:@localhost:8000/default"
         run: |
           make lint
           make ci

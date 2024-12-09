@@ -1,42 +1,47 @@
+import os
+import unittest
+import types
 from databend_py import Client
-from unittest import TestCase
-import types, os
 
 
 def sample_insert_data():
-    return [(1, 'a'), (1, 'b')]
+    return [(1, "a"), (1, "b")]
 
 
 def create_csv():
     import csv
-    with open('upload.csv', 'w', newline='') as file:
+
+    with open("upload.csv", "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow([1, 'a'])
-        writer.writerow([1, 'b'])
+        writer.writerow([1, "a"])
+        writer.writerow([1, "b"])
 
 
-class DatabendPyTestCase(TestCase):
-    def __init__(self, databend_url):
-        super().__init__()
-        self.databend_url = databend_url
+class DatabendPyTestCase(unittest.TestCase):
+    databend_url = None
+
+    def setUp(self):
+        self.databend_url = os.getenv("TEST_DATABEND_DSN")
 
     def assertHostsEqual(self, client, another, msg=None):
         self.assertEqual(client.connection.host, another, msg=msg)
 
     def test_simple(self):
-        c = Client.from_url('https://app.databend.com:443?secure=True&copy_purge=True&debug=True')
+        c = Client.from_url(
+            "https://app.databend.com:443?secure=True&copy_purge=True&debug=True"
+        )
 
-        self.assertHostsEqual(c, 'app.databend.com')
-        self.assertEqual(c.connection.database, 'default')
-        self.assertEqual(c.connection.user, 'root')
+        self.assertHostsEqual(c, "app.databend.com")
+        self.assertEqual(c.connection.database, "default")
+        self.assertEqual(c.connection.user, "root")
         self.assertEqual(c.connection.copy_purge, True)
         self.assertEqual(c.settings.get("debug"), True)
 
-        c = Client.from_url('https://host:443/db')
+        c = Client.from_url("https://host:443/db")
 
-        self.assertHostsEqual(c, 'host')
-        self.assertEqual(c.connection.database, 'db')
-        self.assertEqual(c.connection.password, '')
+        self.assertHostsEqual(c, "host")
+        self.assertEqual(c.connection.database, "db")
+        self.assertEqual(c.connection.password, "")
 
         c = Client.from_url("databend://localhost:8000/default?secure=true")
         self.assertEqual(c.connection.schema, "https")
@@ -49,23 +54,33 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(c.connection.connect_timeout, 180)
         self.assertEqual(c.connection.read_timeout, 180)
 
-        c = Client.from_url("databend://root:root@localhost:8000/default?connect_timeout=30&read_timeout=30")
+        c = Client.from_url(
+            "databend://root:root@localhost:8000/default?connect_timeout=30&read_timeout=30"
+        )
         self.assertEqual(c.connection.connect_timeout, 30)
         self.assertEqual(c.connection.read_timeout, 30)
 
         self.assertEqual(c.connection.persist_cookies, False)
-        c = Client.from_url('https://root:root@localhost:8000?persist_cookies=True&tenant=tn1&warehouse=wh1')
+        c = Client.from_url(
+            "https://root:root@localhost:8000?persist_cookies=True&tenant=tn1&warehouse=wh1"
+        )
         self.assertEqual(c.connection.persist_cookies, True)
         self.assertEqual(c.connection.tenant, "tn1")
         self.assertEqual(c.connection.warehouse, "wh1")
 
     def test_session_settings(self):
         session_settings = {"db": "database"}
-        c = Client(host="localhost", port=8000, user="root", password="root", session_settings={"db": "database"})
+        c = Client(
+            host="localhost",
+            port=8000,
+            user="root",
+            password="root",
+            session_settings={"db": "database"},
+        )
         self.assertEqual(c.connection.client_session, session_settings)
 
     def test_ordinary_query(self):
-        select_test = '''
+        select_test = """
         select
       null as db,
       name as name,
@@ -73,7 +88,7 @@ class DatabendPyTestCase(TestCase):
       if(engine = 'VIEW', 'view', 'table') as type
     from system.tables
     where database = 'default';
-        '''
+        """
         # if use the host from databend cloud, must set the 'ADDITIONAL_HEADERS':
         # os.environ['ADDITIONAL_HEADERS'] = 'X-DATABENDCLOUD-TENANT=TENANT,X-DATABENDCLOUD-WAREHOUSE=WAREHOUSE'
         c = Client.from_url(self.databend_url)
@@ -81,32 +96,40 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(r, ([(1,)]))
         column_types, _ = c.execute(select_test, with_column_types=True)
         print(column_types)
-        self.assertEqual(column_types, [('db', 'NULL'), ('name', 'String'), ('schema', 'String'), ('type', 'String')])
+        self.assertEqual(
+            column_types,
+            [
+                ("db", "NULL"),
+                ("name", "String"),
+                ("schema", "String"),
+                ("type", "String"),
+            ],
+        )
 
         # test with_column_types=True
         r = c.execute("select 1", with_column_types=True)
-        self.assertEqual(r, ([('1', 'UInt8')], [(1,)]))
+        self.assertEqual(r, ([("1", "UInt8")], [(1,)]))
 
     def test_batch_insert(self):
         c = Client.from_url(self.databend_url)
-        c.execute('DROP TABLE IF EXISTS test')
-        c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
-        c.execute('DESC  test')
-        _, r1 = c.execute('INSERT INTO test (x,y) VALUES (%,%)', [1, 'yy', 2, 'xx'])
+        c.execute("DROP TABLE IF EXISTS test")
+        c.execute("CREATE TABLE if not exists test (x Int32,y VARCHAR)")
+        c.execute("DESC  test")
+        _, r1 = c.execute("INSERT INTO test (x,y) VALUES (%,%)", [1, "yy", 2, "xx"])
         self.assertEqual(r1, 2)
-        _, ss = c.execute('select * from test')
+        _, ss = c.execute("select * from test")
         print(ss)
-        self.assertEqual(ss, [(1, 'yy'), (2, 'xx')])
+        self.assertEqual(ss, [(1, "yy"), (2, "xx")])
 
     def test_batch_insert_with_tuple(self):
         c = Client.from_url(self.databend_url)
-        c.execute('DROP TABLE IF EXISTS test')
-        c.execute('CREATE TABLE if not exists test (x Int32,y VARCHAR)')
-        c.execute('DESC  test')
-        _, r1 = c.execute('INSERT INTO test (x,y) VALUES', [(3, 'aa'), (4, 'bb')])
+        c.execute("DROP TABLE IF EXISTS test")
+        c.execute("CREATE TABLE if not exists test (x Int32,y VARCHAR)")
+        c.execute("DESC  test")
+        _, r1 = c.execute("INSERT INTO test (x,y) VALUES", [(3, "aa"), (4, "bb")])
         self.assertEqual(r1, 2)
-        _, ss = c.execute('select * from test')
-        self.assertEqual(ss, [(3, 'aa'), (4, 'bb')])
+        _, ss = c.execute("select * from test")
+        self.assertEqual(ss, [(3, "aa"), (4, "bb")])
 
     def test_iter_query(self):
         client = Client.from_url(self.databend_url)
@@ -119,57 +142,59 @@ class DatabendPyTestCase(TestCase):
 
     def test_insert(self):
         client = Client.from_url(self.databend_url)
-        client.execute('DROP TABLE IF EXISTS test_upload')
-        client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
-        client.execute('DESC test_upload')
-        client.insert("default", "test_upload", [(1, 'a'), (1, 'b')])
-        _, upload_res = client.execute('select * from test_upload')
-        self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
+        client.execute("DROP TABLE IF EXISTS test_upload")
+        client.execute("CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)")
+        client.execute("DESC test_upload")
+        client.insert("default", "test_upload", [(1, "a"), (1, "b")])
+        _, upload_res = client.execute("select * from test_upload")
+        self.assertEqual(upload_res, [(1, "a"), (1, "b")])
 
     def test_replace(self):
         client = Client.from_url(self.databend_url)
-        client.execute('DROP TABLE IF EXISTS test_replace')
-        client.execute('CREATE TABLE if not exists test_replace (x Int32,y VARCHAR)')
-        client.execute('DESC test_replace')
-        client.replace("default", "test_replace", ['x'], [(1, 'a'), (2, 'b')])
-        client.replace("default", "test_replace", ['x'], [(1, 'c'), (2, 'd')])
-        _, upload_res = client.execute('select * from test_replace')
-        self.assertEqual(upload_res, [(1, 'c\r'), (2, 'd\r')])
+        client.execute("DROP TABLE IF EXISTS test_replace")
+        client.execute("CREATE TABLE if not exists test_replace (x Int32,y VARCHAR)")
+        client.execute("DESC test_replace")
+        client.replace("default", "test_replace", ["x"], [(1, "a"), (2, "b")])
+        client.replace("default", "test_replace", ["x"], [(1, "c"), (2, "d")])
+        _, upload_res = client.execute("select * from test_replace")
+        self.assertEqual(upload_res, [(1, "c\r"), (2, "d\r")])
 
     def test_insert_with_compress(self):
         client = Client.from_url(self.databend_url + "?compress=True&debug=True")
         self.assertEqual(client._uploader._compress, True)
-        client.execute('DROP TABLE IF EXISTS test_upload')
-        client.execute('CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)')
-        client.execute('DESC test_upload')
-        client.insert("default", "test_upload", [(1, 'a'), (1, 'b')])
-        _, upload_res = client.execute('select * from test_upload')
-        self.assertEqual(upload_res, [(1, 'a'), (1, 'b')])
+        client.execute("DROP TABLE IF EXISTS test_upload")
+        client.execute("CREATE TABLE if not exists test_upload (x Int32,y VARCHAR)")
+        client.execute("DESC test_upload")
+        client.insert("default", "test_upload", [(1, "a"), (1, "b")])
+        _, upload_res = client.execute("select * from test_upload")
+        self.assertEqual(upload_res, [(1, "a"), (1, "b")])
 
     def test_upload_to_stage(self):
         client = Client.from_url(self.databend_url)
-        stage_path = client.upload_to_stage('@~', "upload.csv", [(1, 'a'), (1, 'b')])
+        stage_path = client.upload_to_stage("@~", "upload.csv", [(1, "a"), (1, "b")])
         self.assertEqual(stage_path, "@~/upload.csv")
 
     def test_upload_file_to_stage(self):
         create_csv()
         client = Client.from_url(self.databend_url)
         with open("upload.csv", "rb") as f:
-            stage_path = client.upload_to_stage('@~', "upload.csv", f)
+            stage_path = client.upload_to_stage("@~", "upload.csv", f)
             print(stage_path)
             self.assertEqual(stage_path, "@~/upload.csv")
 
         os.remove("upload.csv")
 
     def test_select_over_paging(self):
-        expected_column = [('number', 'UInt64')]
+        expected_column = [("number", "UInt64")]
         client = Client.from_url(self.databend_url)
-        columns, data = client.execute('SELECT * FROM numbers(10001)', with_column_types=True)
+        columns, data = client.execute(
+            "SELECT * FROM numbers(10001)", with_column_types=True
+        )
         self.assertEqual(expected_column, columns)
 
     def tearDown(self):
         client = Client.from_url(self.databend_url)
-        client.execute('DROP TABLE IF EXISTS test')
+        client.execute("DROP TABLE IF EXISTS test")
         client.disconnect()
 
     def test_cookies(self):
@@ -201,20 +226,31 @@ class DatabendPyTestCase(TestCase):
     def test_special_chars(self):
         client = Client.from_url(self.databend_url)
         client.execute("create or replace table test_special_chars (x string)")
-        client.execute("INSERT INTO test_special_chars (x) VALUES", [('ó')])
+        client.execute("INSERT INTO test_special_chars (x) VALUES", [("ó")])
         _, data = client.execute("select * from test_special_chars")
-        self.assertEqual(data, [('ó')])
+        self.assertEqual(data, [("ó",)])
 
     def test_set_query_id_header(self):
-        os.environ["ADDITIONAL_HEADERS"] = "X-DATABENDCLOUD-TENANT=TENANT,X-DATABENDCLOUD-WAREHOUSE=WAREHOUSE"
+        os.environ["ADDITIONAL_HEADERS"] = (
+            "X-DATABENDCLOUD-TENANT=TENANT,X-DATABENDCLOUD-WAREHOUSE=WAREHOUSE"
+        )
         client = Client.from_url(self.databend_url)
-        self.assertEqual("X-DATABENDCLOUD-TENANT" in client.connection.additional_headers, True)
-        self.assertEqual(client.connection.additional_headers["X-DATABENDCLOUD-TENANT"], "TENANT")
+        self.assertEqual(
+            "X-DATABENDCLOUD-TENANT" in client.connection.additional_headers, True
+        )
+        self.assertEqual(
+            client.connection.additional_headers["X-DATABENDCLOUD-TENANT"], "TENANT"
+        )
         client.execute("select 1")
-        execute_query_id1 = client.connection.additional_headers["X-Databend-Query-Id"]
-        self.assertEqual("X-Databend-Query-Id" in client.connection.additional_headers, True)
+        execute_query_id1 = client.connection.additional_headers["X-DATABEND-QUERY-ID"]
+        self.assertEqual(
+            "X-DATABEND-QUERY-ID" in client.connection.additional_headers, True
+        )
         client.execute("select 2")
-        self.assertNotEqual(execute_query_id1, client.connection.additional_headers["X-Databend-Query-Id"])
+        self.assertNotEqual(
+            execute_query_id1,
+            client.connection.additional_headers["X-DATABEND-QUERY-ID"],
+        )
 
     def test_commit(self):
         client = Client.from_url(self.databend_url)
@@ -258,21 +294,5 @@ class DatabendPyTestCase(TestCase):
         self.assertEqual(data, [(True,), (False,)])
 
 
-if __name__ == '__main__':
-    print("start test......")
-    # os.environ['TEST_DATABEND_DSN'] = "http://root:@localhost:8000"
-    dt = DatabendPyTestCase(databend_url=os.getenv("TEST_DATABEND_DSN"))
-    dt.test_simple()
-    dt.test_ordinary_query()
-    dt.test_batch_insert()
-    dt.test_iter_query()
-    dt.test_insert()
-    dt.test_replace()
-    dt.test_insert_with_compress()
-    dt.test_upload_to_stage()
-    dt.test_upload_file_to_stage()
-    dt.test_cookies()
-    dt.test_null_to_none()
-    dt.tearDown()
-    dt.test_cast_bool()
-    print("end test.....")
+if __name__ == "__main__":
+    unittest.main()
