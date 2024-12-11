@@ -293,6 +293,14 @@ class DatabendPyTestCase(unittest.TestCase):
         _, data = client.execute("select 'False'::boolean union select 'True'::boolean")
         self.assertEqual(data, [(True,), (False,)])
 
+    def test_temp_table(self):
+        client = Client.from_url(self.databend_url)
+        client.execute("create temp table t1(a int)")
+        client.execute("insert into t1 values (1)")
+        _, data = client.execute("select * from t1")
+        self.assertEqual(data, [(1,)])
+        client.execute("drop table t1")
+
 
 if __name__ == "__main__":
     unittest.main()
