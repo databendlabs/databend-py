@@ -131,6 +131,16 @@ class DatabendPyTestCase(unittest.TestCase):
         _, ss = c.execute("select * from test")
         self.assertEqual(ss, [(3, "aa"), (4, "bb")])
 
+    def test_batch_insert_with_dict_list(self):
+        c = Client.from_url(self.databend_url)
+        c.execute("DROP TABLE IF EXISTS test")
+        c.execute("CREATE TABLE if not exists test (x Int32,y VARCHAR)")
+        c.execute("DESC  test")
+        _, r1 = c.execute("INSERT INTO test (x,y) VALUES", [{"x": 5, "y": "cc"}, {"x": 6, "y": "dd"}])
+        self.assertEqual(r1, 2)
+        _, ss = c.execute("select * from test")
+        self.assertEqual(ss, [(5, "cc"), (6, "dd")])
+
     def test_iter_query(self):
         client = Client.from_url(self.databend_url)
         result = client.execute_iter("select 1", with_column_types=False)

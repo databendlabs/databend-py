@@ -81,7 +81,7 @@ class Client(object):
                 yield r
 
     def execute(
-        self, query, params=None, with_column_types=False, query_id=None, settings=None
+            self, query, params=None, with_column_types=False, query_id=None, settings=None
     ):
         """
         Executes query.
@@ -138,9 +138,12 @@ class Client(object):
         if params is not None and len(params) > 0:
             if isinstance(params[0], tuple):
                 tuple_ls = params
+            elif isinstance(params[0], dict):
+                # if params type is list[dictionary], then it's a insert query
+                tuple_ls = [tuple(p.values()) for p in params]
             else:
                 tuple_ls = [
-                    tuple(params[i : i + batch_size])
+                    tuple(params[i: i + batch_size])
                     for i in range(0, len(params), batch_size)
                 ]
             insert_rows = len(tuple_ls)
@@ -148,7 +151,7 @@ class Client(object):
         return insert_rows
 
     def _process_ordinary_query(
-        self, query, params=None, with_column_types=False, query_id=None
+            self, query, params=None, with_column_types=False, query_id=None
     ):
         if params is not None:
             query = self._substitute_params(query, params, self.connection.context)
@@ -159,7 +162,7 @@ class Client(object):
         )
 
     def execute_iter(
-        self, query, params=None, with_column_types=False, query_id=None, settings=None
+            self, query, params=None, with_column_types=False, query_id=None, settings=None
     ):
         if params is not None:
             query = self._substitute_params(query, params, self.connection.context)
@@ -168,7 +171,7 @@ class Client(object):
         )
 
     def _iter_process_ordinary_query(
-        self, query, with_column_types=False, query_id=None
+            self, query, with_column_types=False, query_id=None
     ):
         return self._iter_receive_result(
             query, query_id=query_id, with_column_types=with_column_types
