@@ -21,7 +21,7 @@ class DatabendPyTestCase(unittest.TestCase):
     databend_url = None
 
     def setUp(self):
-        self.databend_url = os.getenv("TEST_DATABEND_DSN")
+        self.databend_url = "https://sjh1Test:abc123@tn3ftqihs.gw.aws-us-east-2.default.databend.com:443?warehouse=test-sjh&secure=True"
 
     def assertHostsEqual(self, client, another, msg=None):
         self.assertEqual(client.connection.host, another, msg=msg)
@@ -140,6 +140,16 @@ class DatabendPyTestCase(unittest.TestCase):
         self.assertEqual(r1, 2)
         _, ss = c.execute("select * from test")
         self.assertEqual(ss, [(5, "cc"), (6, "dd")])
+
+    def test_batch_insert_with_dict_multi_fields(self):
+        c = Client.from_url(self.databend_url)
+        c.execute("DROP TABLE IF EXISTS test")
+        c.execute("CREATE TABLE if not exists test (id int, x Int32, y VARCHAR, z Int32)")
+        c.execute("DESC  test")
+        _, r1 = c.execute("INSERT INTO test (x,y) VALUES", [{"x": 7, "y": "ee"}, {"x": 8, "y": "ff"}])
+        self.assertEqual(r1, 2)
+        _, ss = c.execute("select * from test")
+        self.assertEqual(ss, [('NULL', 7, 'ee', 'NULL'), ('NULL', 8, 'ff', 'NULL')])
 
     def test_iter_query(self):
         client = Client.from_url(self.databend_url)

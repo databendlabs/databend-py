@@ -147,7 +147,7 @@ class Client(object):
                     for i in range(0, len(params), batch_size)
                 ]
             insert_rows = len(tuple_ls)
-            self._uploader.upload_to_table_by_copy(table_name, tuple_ls)
+            self._uploader.upload_to_table_by_attachment(query, tuple_ls)
         return insert_rows
 
     def _process_ordinary_query(
