@@ -177,7 +177,7 @@ class DatabendPyTestCase(unittest.TestCase):
         client.replace("default", "test_replace", ["x"], [(1, "a"), (2, "b")])
         client.replace("default", "test_replace", ["x"], [(1, "c"), (2, "d")])
         _, upload_res = client.execute("select * from test_replace")
-        self.assertEqual(upload_res, [(1, "c\r"), (2, "d\r")])
+        self.assertEqual(upload_res, [(1, "c"), (2, "d")])
 
     def test_insert_with_compress(self):
         client = Client.from_url(self.databend_url + "?compress=True&debug=True")
