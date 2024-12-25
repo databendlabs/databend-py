@@ -21,7 +21,7 @@ class DatabendPyTestCase(unittest.TestCase):
     databend_url = None
 
     def setUp(self):
-        self.databend_url = "https://sjh1Test:abc123@tn3ftqihs.gw.aws-us-east-2.default.databend.com:443?warehouse=test-sjh&secure=True"
+        self.databend_url = os.getenv("TEST_DATABEND_DSN")
 
     def assertHostsEqual(self, client, another, msg=None):
         self.assertEqual(client.connection.host, another, msg=msg)
