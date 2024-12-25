@@ -10,13 +10,13 @@ from . import log
 
 class DataUploader:
     def __init__(
-        self,
-        client,
-        connection,
-        settings,
-        default_stage_dir="@~",
-        debug=False,
-        compress=False,
+            self,
+            client,
+            connection,
+            settings,
+            default_stage_dir="@~",
+            debug=False,
+            compress=False,
     ):
         # TODO: make it depends on Connection instead of Client
         self.client = client
@@ -33,6 +33,14 @@ class DataUploader:
         presigned_url, headers = self._execute_presign(stage_path)
         self._upload_to_presigned_url(presigned_url, headers, data)
         self._execute_copy(table_name, stage_path, "CSV")
+
+    def upload_to_table_by_attachment(self, sql_statement, data):
+        if len(data) == 0:
+            return
+        stage_path = self._gen_stage_path(self.default_stage_dir)
+        presigned_url, headers = self._execute_presign(stage_path)
+        self._upload_to_presigned_url(presigned_url, headers, data)
+        self._execute_with_attachment(sql_statement, stage_path, "CSV")
 
     def replace_into_table(self, table_name, conflict_keys, data):
         """
@@ -175,6 +183,8 @@ class DataUploader:
 
         file_format_options = {}
         file_format_options["type"] = file_type
+        file_format_options["RECORD_DELIMITER"] = '\r\n'
+        file_format_options["COMPRESSION"] = "AUTO"
 
         data = {
             "sql": sql_statement,

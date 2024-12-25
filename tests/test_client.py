@@ -141,6 +141,16 @@ class DatabendPyTestCase(unittest.TestCase):
         _, ss = c.execute("select * from test")
         self.assertEqual(ss, [(5, "cc"), (6, "dd")])
 
+    def test_batch_insert_with_dict_multi_fields(self):
+        c = Client.from_url(self.databend_url)
+        c.execute("DROP TABLE IF EXISTS test")
+        c.execute("CREATE TABLE if not exists test (id int, x Int32, y VARCHAR, z Int32)")
+        c.execute("DESC  test")
+        _, r1 = c.execute("INSERT INTO test (x,y) VALUES", [{"x": 7, "y": "ee"}, {"x": 8, "y": "ff"}])
+        self.assertEqual(r1, 2)
+        _, ss = c.execute("select * from test")
+        self.assertEqual(ss, [('NULL', 7, 'ee', 'NULL'), ('NULL', 8, 'ff', 'NULL')])
+
     def test_iter_query(self):
         client = Client.from_url(self.databend_url)
         result = client.execute_iter("select 1", with_column_types=False)
@@ -167,7 +177,7 @@ class DatabendPyTestCase(unittest.TestCase):
         client.replace("default", "test_replace", ["x"], [(1, "a"), (2, "b")])
         client.replace("default", "test_replace", ["x"], [(1, "c"), (2, "d")])
         _, upload_res = client.execute("select * from test_replace")
-        self.assertEqual(upload_res, [(1, "c\r"), (2, "d\r")])
+        self.assertEqual(upload_res, [(1, "c"), (2, "d")])
 
     def test_insert_with_compress(self):
         client = Client.from_url(self.databend_url + "?compress=True&debug=True")

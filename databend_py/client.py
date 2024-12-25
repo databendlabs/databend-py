@@ -133,7 +133,6 @@ class Client(object):
             query = query.split("VALUES")[0] + "VALUES"
         if len(query.split(" ")) < 3:
             raise Exception("Not standard insert/replace statement")
-        table_name = query.split(" ")[2]
         batch_size = query.count(",") + 1
         if params is not None and len(params) > 0:
             if isinstance(params[0], tuple):
@@ -147,7 +146,7 @@ class Client(object):
                     for i in range(0, len(params), batch_size)
                 ]
             insert_rows = len(tuple_ls)
-            self._uploader.upload_to_table_by_copy(table_name, tuple_ls)
+            self._uploader.upload_to_table_by_attachment(query, tuple_ls)
         return insert_rows
 
     def _process_ordinary_query(
