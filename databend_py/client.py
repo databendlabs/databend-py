@@ -133,7 +133,6 @@ class Client(object):
             query = query.split("VALUES")[0] + "VALUES"
         if len(query.split(" ")) < 3:
             raise Exception("Not standard insert/replace statement")
-        table_name = query.split(" ")[2]
         batch_size = query.count(",") + 1
         if params is not None and len(params) > 0:
             if isinstance(params[0], tuple):
