@@ -1,6 +1,6 @@
 [project]
 name = "databend-py"
-version = "0.6.3"
+version = "0.6.4"
 description = "Add your description here"
 readme = "README.md"
 authors = [
