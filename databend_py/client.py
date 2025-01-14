@@ -77,8 +77,7 @@ class Client(object):
         )
         _, rows = result.get_result()
         for row in rows:
-            for r in row:
-                yield r
+            yield row
 
     def execute(
             self, query, params=None, with_column_types=False, query_id=None, settings=None

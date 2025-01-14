@@ -1,3 +1,7 @@
+# Notice
+We strongly recommend using the [databend-driver](https://github.com/databendlabs/bendsql/blob/main/bindings/python/README.md) as it provides more comprehensive features.
+
+
 # databend-py
 
 Databend Cloud Python Driver with native http interface support
