@@ -153,12 +153,11 @@ class DatabendPyTestCase(unittest.TestCase):
 
     def test_iter_query(self):
         client = Client.from_url(self.databend_url)
-        result = client.execute_iter("select 1", with_column_types=False)
+        result = client.execute_iter("select 1, 2, 3 from numbers(3)", with_column_types=False)
         self.assertIsInstance(result, types.GeneratorType)
         result_list = [i for i in result]
         print(result_list)
-        self.assertEqual(result_list, [1])
-        self.assertEqual(list(result), [])
+        self.assertEqual(result_list, [(1, 2, 3), (1, 2, 3), (1, 2, 3)])
 
     def test_insert(self):
         client = Client.from_url(self.databend_url)

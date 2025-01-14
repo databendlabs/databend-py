@@ -1,3 +1,7 @@
+# Notice
+We strongly recommend using the [databend-driver](https://pypi.org/project/databend-driver) as it provides more comprehensive features.
+
+
 # databend-py
 
 Databend Cloud Python Driver with native http interface support
