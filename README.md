@@ -1,5 +1,5 @@
 # Notice
-We strongly recommend using the [databend-driver](https://github.com/databendlabs/bendsql/blob/main/bindings/python/README.md) as it provides more comprehensive features.
+We strongly recommend using the [databend-driver](https://pypi.org/project/databend-driver) as it provides more comprehensive features.
 
 
 # databend-py
